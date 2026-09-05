@@ -1,0 +1,4485 @@
+{
+  "info": {
+    "name": "xCures SDK — Workflow Playbook",
+    "_postman_id": "xcures-sdk-workflows-v1",
+    "description": "Workflow-first Postman collection mirroring every example in the xCures SDK docs.\n\nSetup (do this once):\n1. Click the collection → Variables tab\n2. Fill in client_id, client_secret, project_id\n3. Run '0.1 Get Bearer Token' — it auto-saves the token to {{bearer_token}}\n4. Run folders top-to-bottom — each step saves IDs that the next step needs\n\nNote: Real query polling takes 20–30 minutes in production. In Postman, use the 'Poll Query Status' request manually until ccdaStatus = 'completed' or 'exhausted'.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://partner.xcures.com"
+    },
+    {
+      "key": "client_id",
+      "value": "PASTE_YOUR_CLIENT_ID_HERE"
+    },
+    {
+      "key": "client_secret",
+      "value": "PASTE_YOUR_CLIENT_SECRET_HERE"
+    },
+    {
+      "key": "project_id",
+      "value": "PASTE_YOUR_PROJECT_ID_HERE"
+    },
+    {
+      "key": "bearer_token",
+      "value": ""
+    },
+    {
+      "key": "subject_id",
+      "value": ""
+    },
+    {
+      "key": "query_id",
+      "value": ""
+    },
+    {
+      "key": "document_id",
+      "value": ""
+    },
+    {
+      "key": "checklist_id",
+      "value": ""
+    },
+    {
+      "key": "template_id",
+      "value": ""
+    },
+    {
+      "key": "application_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0 — Auth (run first)",
+      "description": "Run 0.1 before anything else. The SDK fetches a bearer token on the first call, attaches it — and the required ProjectId header — to every request, and refreshes silently when the token expires. In Postman, the test script saves the token to {{bearer_token}} automatically.",
+      "item": [
+        {
+          "name": "0.1 Get Bearer Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('access_token present', () => pm.expect(j.access_token).to.be.a('string'));",
+                  "if (j.access_token) { pm.collectionVariables.set('bearer_token', j.access_token); console.log('✓ Token saved to bearer_token'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client_id\": \"{{client_id}}\",\n  \"client_secret\": \"{{client_secret}}\",\n  \"grant_type\": \"client_credentials\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/oauth/token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "oauth",
+                "token"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 — Your First Call",
+      "description": "Search for subjects to verify your credentials and connection. If this runs without an error, you're set up correctly. If you see a 401, double-check your client_id and client_secret. If you see a 403, double-check your project_id.",
+      "item": [
+        {
+          "name": "1.1 Search Subjects (first page)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('results array present', () => pm.expect(j.results).to.be.an('array'));",
+                  "console.log('Total subjects:', j.totalCount);",
+                  "j.results.forEach(s => console.log(s.identifier, s.firstName, s.lastName));",
+                  "if (j.results && j.results[0]) { pm.collectionVariables.set('subject_id', j.results[0].id); console.log('✓ subject_id saved:', j.results[0].id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/subject?pageNumber=1&pageSize=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "subject"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 — Patient Creation",
+      "description": "The simplest operation: register one patient in xCures with a single call. Use this when you want to create patient records without immediately dispatching a query — for example, pre-loading a roster you'll query later, or registering patients triggered by an upstream event.",
+      "item": [
+        {
+          "name": "2.1 Create Subject (v2 — returns subject immediately)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.test('subject id present', () => pm.expect(j.id).to.be.a('string'));",
+                  "if (j.id) { pm.collectionVariables.set('subject_id', j.id); console.log('✓ subject_id saved:', j.id, '-', j.identifier); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"birthDate\": \"1980-03-15\",\n  \"gender\": \"F\",\n  \"addressPostalCode\": \"55401\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/patient-registry/subject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v2",
+                "patient-registry",
+                "subject"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 — Patient Creation & Query",
+      "description": "Register a patient and immediately dispatch a query to start record retrieval. Two calls in sequence: create subject, then create query. Use this when you want to start record retrieval but handle polling, document reading, and downstream processing elsewhere — for example, in a webhook handler or a separate worker process.",
+      "item": [
+        {
+          "name": "3.1 Create Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('subject_id', j.id); console.log('✓ subject_id saved:', j.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"birthDate\": \"1980-03-15\",\n  \"gender\": \"F\",\n  \"addressPostalCode\": \"55401\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/patient-registry/subject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v2",
+                "patient-registry",
+                "subject"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.2 Create Query (dispatches to health network)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('query_id', j.id); console.log('✓ query_id saved:', j.id, '| status:', j.ccdaStatus); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 — Standard Treatment Workflow",
+      "description": "The complete Treatment workflow from first API call to evaluated checklist — the full sequence:\n\n1. Create subject (initiateEhrQuery defaults to true, so the EHR query is dispatched as part of this call)\n2. List Queries for Subject to locate the auto-fired query and save its id\n3. Poll until completed or exhausted (~20–30 min for production patients). If status = error, run step 4.3b to requery.\n4. Search documents\n5. Poll Clinical Concepts status until loaded = true (xCures normalizes documents asynchronously)\n6. Get checklists and evaluate\n7. (Optional) Get document signed S3 URL for download\n\nYou have a working end-to-end Treatment flow — subject, query, documents, Clinical Concepts, and a checklist evaluation. The sections below cover individual operations you can perform on a patient's data after the query completes.",
+      "item": [
+        {
+          "name": "4.1 Create Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('subject_id', j.id); console.log('✓ Step 1 done — subject_id:', j.id, '(EHR query auto-fired by subject creation)'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"birthDate\": \"1980-03-15\",\n  \"gender\": \"F\",\n  \"addressPostalCode\": \"55401\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/patient-registry/subject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v2",
+                "patient-registry",
+                "subject"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.2 List Queries for Subject (find the auto-fired query)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "const results = j.results || [];",
+                  "if (results.length === 0) {",
+                  "  console.log('⚠ No query found for subject yet — the auto-fire may still be in progress; re-run 4.2 in a few seconds.');",
+                  "  return;",
+                  "}",
+                  "const q = results[0];",
+                  "pm.collectionVariables.set('query_id', q.id);",
+                  "console.log('✓ Step 2 done — query_id:', q.id, '| ccdaStatus:', q.ccdaStatus);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query?subjectId={{subject_id}}&pageNumber=1&pageSize=1&sortField=created&sortIsDescending=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "1"
+                },
+                {
+                  "key": "sortField",
+                  "value": "created"
+                },
+                {
+                  "key": "sortIsDescending",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.3 Poll Query Status (repeat until completed or exhausted)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "const status = j.ccdaStatus;",
+                  "console.log('ccdaStatus:', status);",
+                  "if (status === 'completed' || status === 'exhausted') { console.log('✓ Step 3 done — proceed to 4.4'); }",
+                  "else if (status === 'error') { console.log('⚠ status=error — run 4.3b Requery to restart'); }",
+                  "else { console.log('Still in progress (' + status + ') — wait 30s and run this request again'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query/{{query_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query",
+                "{{query_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.3b Requery (only if status = error)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('query_id', j.id); console.log('✓ Requery dispatched — new query_id:', j.id, '— resume polling with 4.3'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.4 Search Documents",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('✓ Step 4 done —', j.totalCount, 'documents retrieved');",
+                  "if (j.results && j.results[0]) { pm.collectionVariables.set('document_id', j.results[0].id); console.log('document_id saved:', j.results[0].id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.5 Poll Clinical Concepts Status (repeat until loaded = true)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.loaded) { console.log('✓ Step 5 done — Clinical Concepts loaded, proceed to 4.6'); }",
+                  "else { console.log('Clinical Concepts still processing — wait 30s and run again'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/subject/{{subject_id}}/status/clinical-concepts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "subject",
+                "{{subject_id}}",
+                "status",
+                "clinical-concepts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.6 Get Checklists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "if (j && j[0]) { pm.collectionVariables.set('checklist_id', j[0].id); console.log('✓ Step 6a done — checklist_id saved:', j[0].id); }",
+                  "else { console.log('No checklists configured for this project'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/checklist?type=questionnaire",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "checklist"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "questionnaire"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.7 Evaluate Checklist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.criteria) { j.criteria.forEach(c => console.log(c.result ? '✓' : '✗', c.description)); }",
+                  "console.log('✓ Step 6 done — checklist evaluated');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/checklist/{{checklist_id}}/evaluate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "checklist",
+                "{{checklist_id}}",
+                "evaluate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.8 Get Document (signed S3 URL for download) [optional]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "const docs = Array.isArray(j) ? j : [j];",
+                  "if (docs[0] && docs[0].signedS3Url) { console.log('✓ Step 7 done — Download URL:', docs[0].signedS3Url); console.log('Filename:', docs[0].fileName); }",
+                  "else { console.log('Response:', JSON.stringify(docs[0], null, 2)); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document/{{document_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document",
+                "{{document_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 — List Subjects",
+      "description": "To enumerate every patient in your project, use the subject search endpoint. Pass no filters to list the entire project, or pass parameters like lastName, firstName, or createdStart / createdEnd to scope the listing. The response always includes a totalCount regardless of pageSize — you don't need to paginate to get a count.",
+      "item": [
+        {
+          "name": "5.1 List Subjects (with optional filters)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('Total:', j.totalCount, '| Page size:', j.results.length);",
+                  "j.results.forEach(s => console.log(s.identifier, s.firstName, s.lastName));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/subject?pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "subject"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "sortField",
+                  "value": "identifier",
+                  "disabled": true
+                },
+                {
+                  "key": "sortIsDescending",
+                  "value": "false",
+                  "disabled": true
+                },
+                {
+                  "key": "firstName",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lastName",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "email",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "birthDate",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "city",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "state",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "postalCode",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "gender",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "identifier",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "deleted",
+                  "value": "false",
+                  "disabled": true
+                },
+                {
+                  "key": "createdStart",
+                  "value": "2025-01-01T00:00:00Z",
+                  "disabled": true
+                },
+                {
+                  "key": "createdEnd",
+                  "value": "2025-12-31T23:59:59Z",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6 — Document Count",
+      "description": "To get the total number of documents retrieved for a patient, call document search with pageSize=1. The server always returns the full totalCount in the response envelope regardless of page size, so there is no need to paginate through all results just to count them. If totalCount is 0 after a query completes, verify the patient's demographics and requery.",
+      "item": [
+        {
+          "name": "6.1 Document Count (pageSize=1, read totalCount)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('Document count:', j.totalCount);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document?subjectId={{subject_id}}&pageNumber=1&pageSize=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7 — Document Download",
+      "description": "To download all documents for a subject, iterate the paginated document list and fetch each file immediately after retrieving its signed URL. The flow for each document is two steps: call GET document with the document ID to receive a time-limited signed S3 URL, then immediately GET that URL to download the raw bytes.\n\nWARNING: The signedS3Url expires shortly after it is issued. Fetch the file in the same step — do not collect all URLs first and download them later, as the earliest URLs will have expired.\n\nIf you need a human-readable PDF instead of raw XML, the CDA XML to PDF utility in the SDK does the full fetch and convert in one script.",
+      "item": [
+        {
+          "name": "7.1 Search Documents (get list)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('Total documents:', j.totalCount);",
+                  "if (j.results && j.results[0]) { pm.collectionVariables.set('document_id', j.results[0].id); console.log('✓ document_id saved:', j.results[0].id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document?subjectId={{subject_id}}&pageNumber=1&pageSize=50&sortField=created&sortIsDescending=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "sortField",
+                  "value": "created"
+                },
+                {
+                  "key": "sortIsDescending",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "7.2 Get Document (step 1 — get signed S3 URL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const docs = pm.response.json();",
+                  "const d = Array.isArray(docs) ? docs[0] : docs;",
+                  "if (d && d.signedS3Url) { console.log('✓ signedS3Url:', d.signedS3Url); console.log('Filename:', d.fileName); console.log('Next step: PUT the file bytes to this URL immediately — it expires'); }",
+                  "else { console.log('Response:', JSON.stringify(d, null, 2)); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document/{{document_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document",
+                "{{document_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7.3 Get server-rendered PDF (signed URL) [optional]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document/{{document_id}}/pdf",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document",
+                "{{document_id}}",
+                "pdf"
+              ]
+            },
+            "description": "Returns { fileName, signedUrl } — a short-lived (~15 min) signed URL for a server-rendered PDF of the document. The signed URL is bearer-equivalent: anyone holding it can read the document until it expires. Download immediately; never log or persist it. This differs from 7.2, which returns the ORIGINAL file's signed URL via the document detail."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8 — Upload Documents",
+      "description": "To attach a clinical document to an existing subject, use the two-step pattern: Create Document registers the document and returns a signed S3 URL, then a PUT to that URL uploads the file bytes. xCures ingests, normalizes, and extracts Clinical Concepts asynchronously.\n\nThis is the standalone upload. For Reciprocity (publish to the network) see folder 12, which adds a publish step on top of these same two calls. For the full BYOD ingest workflow see folder 14.\n\nWARNING: The signedS3Url expires shortly after it is issued. Upload the file bytes in the same step — do not collect URLs first and upload them later.\n\nNOTE: documentDate is recommended on every upload — it is required if you will later publish for Reciprocity, and Clinical Concepts use it for date-based ordering and timeline display.",
+      "item": [
+        {
+          "name": "8.1 Create Document (register + get signed upload URL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id || j.documentId) {",
+                  "  const id = j.id || j.documentId;",
+                  "  pm.collectionVariables.set('document_id', id);",
+                  "  console.log('✓ document_id saved:', id);",
+                  "  console.log('signedS3Url (PUT your file bytes here immediately):', j.signedS3Url);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\",\n  \"fileName\": \"clinical-note.xml\",\n  \"contentType\": \"application/xml\",\n  \"documentName\": \"Clinical Note\",\n  \"documentDate\": \"2024-01-15T00:00:00Z\",\n  \"informationTypes\": [\"clinical-note\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document"
+              ]
+            }
+          }
+        },
+        {
+          "name": "8.2 PUT file to signed S3 URL (replace URL with value from 8.1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('S3 upload succeeded', () => pm.expect([200, 204]).to.include(pm.response.code));",
+                  "console.log('✓ File uploaded to S3');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "PASTE_YOUR_XML_FILE_CONTENT_HERE"
+            },
+            "url": {
+              "raw": "PASTE_SIGNED_S3_URL_FROM_STEP_8_1_HERE",
+              "host": [
+                "PASTE_SIGNED_S3_URL_FROM_STEP_8_1_HERE"
+              ]
+            }
+          }
+        },
+        {
+          "name": "8.3 Update Document metadata [optional]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"informationTypes\": [\"clinical-note\", \"CCDA\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document/{{document_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document",
+                "{{document_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9 — FHIR Resources",
+      "description": "xCures returns patient data as FHIR R4 resources. You can query individual resource types by subjectId or export the full record set as a single FHIR Bundle. FHIR data is available once the query completes — no additional processing step is required.\n\nAvailable resource types: allergyintolerance, basic, careplan, condition, coverage, diagnosticreport, encounter, medicationstatement, observation, patient, procedure, specimen. All follow the same paginated contract as other endpoints.\n\nIf you are feeding data into an EHR or FHIR server, use the Bundle export (9.13) to get all resource types in a single application/json+fhir Bundle rather than making separate calls per resource type.",
+      "item": [
+        {
+          "name": "9.01 Allergy Intolerances",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/allergyintolerance?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "allergyintolerance"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.02 Basics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/basic?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "basic"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.03 Care Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/careplan?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "careplan"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.04 Conditions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/condition?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "condition"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.05 Coverages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/coverage?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "coverage"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.06 Diagnostic Reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/diagnosticreport?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "diagnosticreport"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.07 Encounters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/encounter?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "encounter"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.08 Medication Statements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/medicationstatement?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "medicationstatement"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.09 Observations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/observation?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "observation"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.10 Patients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/patient?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "patient"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.11 Procedures",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/procedure?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "procedure"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.12 Specimens",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/specimen?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "specimen"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9.13 Export FHIR Bundle (all resources, JSON Lines format)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('2xx response', () => pm.expect(pm.response.code).to.be.below(300));",
+                  "const j = pm.response.json();",
+                  "if (j.exportUrl) { console.log('✓ exportUrl:', j.exportUrl); console.log('Check Expires header for expiry time'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/_export?subjectId={{subject_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "_export"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 — Clinical Concepts — all 15 types",
+      "description": "Clinical Concepts are xCures' structured representation of a patient's clinical history, extracted from raw documents using NLP and LLM processing. They are more actionable than raw FHIR resources for decision-support workflows because they are deduplicated, normalized, and mapped to standard ontologies (OMOP, ICD-10, RxNorm).\n\nEvery concept record includes a documentIds array that cites the exact source documents the concept was extracted from — giving you a full audit trail back to the original clinical notes.\n\nAvailable concept types: Conditions (with cancer staging), Medications (with dosing and oncology classification), Allergies, Labs, Vitals, Procedures, Imaging (radiology and pathology with lesion dimensions), Radiation (therapy dose and fractions), Biomarkers (genomic results with VAF and germline/somatic classification), Encounters, Family History, Demographics, Coverage (insurance), Social History, and Surveys.\n\nRun after Clinical Concepts status = loaded (see folder 4, step 4.5).",
+      "item": [
+        {
+          "name": "10.01 Conditions — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/condition?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "condition"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "code",
+                  "value": "E11.9",
+                  "disabled": true
+                },
+                {
+                  "key": "codeSystem",
+                  "value": "http://hl7.org/fhir/sid/icd-10",
+                  "disabled": true
+                },
+                {
+                  "key": "dateStart",
+                  "value": "2025-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "dateEnd",
+                  "value": "2025-12-31",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.02 Medications — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/medication?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "medication"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.03 Allergies — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/allergy?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "allergy"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.04 Procedures — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/procedure?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "procedure"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.05 Biomarkers — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/biomarker?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "biomarker"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.06 Coverage — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/coverage?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "coverage"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.07 Demographics — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/demographic?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "demographic"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.08 Encounters — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/encounter?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "encounter"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.09 Family History — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/family_history?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "family_history"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.10 Imaging — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/imaging?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "imaging"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.11 Labs — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/lab?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "lab"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.12 Social History — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/social_history?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "social_history"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.13 Surveys — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/survey?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "survey"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.14 Radiation — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/radiation?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "radiation"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.15 Vitals — Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/clinical-concepts/vital?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "clinical-concepts",
+                "vital"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 — Run Checklist",
+      "description": "Checklists evaluate a patient's clinical data against a set of criteria — eligibility rules, screening questions, protocol requirements — and return a true/false result per criterion along with the source documents that justified each call. Two calls: Get Checklists to discover what is configured in your tenant, then Evaluate Checklist to run one against a subject.\n\nWARNING: Checklist evaluation reads from Clinical Concepts. Run this only after Clinical Concepts status reports loaded = true. Evaluating before processing finishes returns empty or partial results.\n\nCalling evaluate is cheap and idempotent — re-run after a new query completes, after a fresh document upload, or after Clinical Concepts are reprocessed. The response always reflects the current state of the patient's record.",
+      "item": [
+        {
+          "name": "11.1 Get Checklists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "if (j && j[0]) { pm.collectionVariables.set('checklist_id', j[0].id); console.log('✓ checklist_id saved:', j[0].id, '|', j[0].name); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/checklist?type=questionnaire",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "checklist"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "questionnaire"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "11.2 Evaluate Checklist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.criteria) { j.criteria.forEach(c => console.log(c.result ? '✓' : '✗', c.description)); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/checklist/{{checklist_id}}/evaluate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "checklist",
+                "{{checklist_id}}",
+                "evaluate"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 — Reciprocity Flow",
+      "description": "As a QHIN network participant, you are obligated to share clinical documentation back to the health information network for any patient whose records you retrieved. The full publish/unpublish cycle in four steps:\n\n1. List templates → pick the right one\n2. Create document — ALWAYS set documentDate (documents without a date are rejected at publish time)\n3. PUT file bytes to signed S3 URL immediately (URL expires shortly after issue)\n4a. Publish document — contributes it to the EHR network\n4b. (Optional) Unpublish — revokes network access only; the document is retained in your project and can be republished at any time\n\nNote: Reciprocity must be enabled on the project and Requester Information and Encounter Information must be configured in the Administration UI before publish calls will succeed. Contact your xCures representative if you receive a 403 on publish.",
+      "item": [
+        {
+          "name": "12.1 List Reciprocity Templates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "if (j && j[0]) { pm.collectionVariables.set('template_id', j[0].id); console.log('✓ template_id saved:', j[0].id, '|', j[0].name); }",
+                  "console.log('Available templates:', j.map(t => t.id + ' — ' + t.name).join(', '));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/reciprocity-template",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "reciprocity-template"
+              ]
+            }
+          }
+        },
+        {
+          "name": "12.2 Create Document (ALWAYS set documentDate)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "const id = j.id || j.documentId;",
+                  "if (id) { pm.collectionVariables.set('document_id', id); console.log('✓ document_id saved:', id); console.log('signedS3Url (PUT bytes here immediately):', j.signedS3Url); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\",\n  \"fileName\": \"clinical-note.xml\",\n  \"contentType\": \"application/xml\",\n  \"documentName\": \"Clinical Note — Reciprocity\",\n  \"documentDate\": \"2024-01-15T00:00:00Z\",\n  \"informationTypes\": [\"clinical-note\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document"
+              ]
+            }
+          }
+        },
+        {
+          "name": "12.3 PUT file to signed S3 URL (replace URL with value from 12.2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('S3 upload succeeded', () => pm.expect([200, 204]).to.include(pm.response.code));",
+                  "console.log('✓ Uploaded to S3 — proceed to 12.4');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "PASTE_YOUR_XML_FILE_CONTENT_HERE"
+            },
+            "url": {
+              "raw": "PASTE_SIGNED_S3_URL_FROM_STEP_12_2_HERE",
+              "host": [
+                "PASTE_SIGNED_S3_URL_FROM_STEP_12_2_HERE"
+              ]
+            }
+          }
+        },
+        {
+          "name": "12.4a Publish Document (contribute to EHR network)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "console.log('✓ Document published for reciprocity');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{template_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document/{{document_id}}/reciprocity",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document",
+                "{{document_id}}",
+                "reciprocity"
+              ]
+            }
+          }
+        },
+        {
+          "name": "12.4b Unpublish Document [optional — revokes network access only]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "console.log('✓ Document unpublished — document still retained in project');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document/{{document_id}}/reciprocity",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document",
+                "{{document_id}}",
+                "reciprocity"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 — Retrieval Only Workflow",
+      "description": "Retrieval Only projects query health information networks and return raw documents to your system. xCures does not perform any data extraction, normalization, or Clinical Concepts processing on the retrieved records — that work happens in your pipeline. This product fits organizations that have their own processing infrastructure and only need xCures to handle network connectivity.\n\nWARNING: Retrieval Only customers query the QHIN networks and are required to contribute documentation back via the Reciprocity flow (folder 12).\n\nQuery polling takes 20–30 minutes per patient, and signed S3 URLs for downloading documents expire shortly after issue. The only difference from the Treatment flow is that you do not run Clinical Concepts processing or Checklists.",
+      "item": [
+        {
+          "name": "13.1 Create Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('subject_id', j.id); console.log('✓ subject_id saved:', j.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"birthDate\": \"1980-03-15\",\n  \"gender\": \"F\",\n  \"addressPostalCode\": \"55401\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/patient-registry/subject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v2",
+                "patient-registry",
+                "subject"
+              ]
+            }
+          }
+        },
+        {
+          "name": "13.2 Create Query",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('query_id', j.id); console.log('✓ query_id saved:', j.id, '| status:', j.ccdaStatus); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query"
+              ]
+            }
+          }
+        },
+        {
+          "name": "13.3 Poll Query Status (repeat until completed/exhausted; run 13.3b if error)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "const s = j.ccdaStatus;",
+                  "console.log('ccdaStatus:', s);",
+                  "if (s === 'completed' || s === 'exhausted') console.log('✓ Done — proceed to 13.4');",
+                  "else if (s === 'error') console.log('⚠ error — run 13.3b Requery');",
+                  "else console.log('Still in progress — wait 30s and run again');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query/{{query_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query",
+                "{{query_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "13.3b Requery (creates a new query — requeries network for new/missed records)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('query_id', j.id); console.log('✓ New query_id:', j.id, '— resume polling with 13.3'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query"
+              ]
+            }
+          }
+        },
+        {
+          "name": "13.4 Search Documents",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log(j.totalCount, 'documents retrieved');",
+                  "if (j.results && j.results[0]) { pm.collectionVariables.set('document_id', j.results[0].id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "13.5 Get Document (signed S3 URL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const docs = pm.response.json();",
+                  "const d = Array.isArray(docs) ? docs[0] : docs;",
+                  "if (d && d.signedS3Url) { console.log('✓ Download URL:', d.signedS3Url); console.log('Filename:', d.fileName); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document/{{document_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document",
+                "{{document_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 — BYOD Workflow",
+      "description": "BYOD customers upload patient records directly to xCures rather than querying health information networks. xCures ingests, normalizes, and converts the data to FHIR R4, then makes Clinical Concepts, Checklists, and Subject Summary available via the API. This product fits organizations — payers, labs, and health systems are typical — that have their own network connections but want xCures to handle data normalization and structuring.\n\nNo Reciprocity required: because BYOD customers do not query QHIN-connected health information networks, the Reciprocity requirement does not apply.\n\nOnce Clinical Concepts processing finishes, BYOD subjects behave like Treatment subjects for every read endpoint — FHIR Resources, Clinical Concepts (all 15 types), and Checklists all work the same way.",
+      "item": [
+        {
+          "name": "14.1 Create Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('subject_id', j.id); console.log('✓ subject_id saved:', j.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"birthDate\": \"1980-03-15\",\n  \"gender\": \"F\",\n  \"addressPostalCode\": \"55401\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/patient-registry/subject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v2",
+                "patient-registry",
+                "subject"
+              ]
+            }
+          }
+        },
+        {
+          "name": "14.2 Create Document (get signed S3 upload URL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "const id = j.id || j.documentId;",
+                  "if (id) { pm.collectionVariables.set('document_id', id); console.log('✓ document_id saved:', id); console.log('signedS3Url (PUT your bytes here):', j.signedS3Url); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\",\n  \"fileName\": \"patient-record.xml\",\n  \"contentType\": \"application/xml\",\n  \"documentName\": \"Patient Clinical Record\",\n  \"documentDate\": \"2024-01-15T00:00:00Z\",\n  \"informationTypes\": [\"CCDA\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document"
+              ]
+            }
+          }
+        },
+        {
+          "name": "14.3 PUT file to signed S3 URL (replace URL with value from 14.2)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "PASTE_YOUR_XML_FILE_CONTENT_HERE"
+            },
+            "url": {
+              "raw": "PASTE_SIGNED_S3_URL_FROM_STEP_14_2_HERE",
+              "host": [
+                "PASTE_SIGNED_S3_URL_FROM_STEP_14_2_HERE"
+              ]
+            }
+          }
+        },
+        {
+          "name": "14.4 Poll Clinical Concepts Status (repeat until loaded = true)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.loaded) console.log('✓ Loaded — proceed to 14.5');",
+                  "else console.log('Still processing — wait 30s and run again');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/subject/{{subject_id}}/status/clinical-concepts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "subject",
+                "{{subject_id}}",
+                "status",
+                "clinical-concepts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "14.5 Search Documents (verify upload processed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log(j.totalCount, 'documents for subject');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "14.6 Get Subject Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 403', () => pm.expect([200,403]).to.include(pm.response.code));",
+                  "if (pm.response.code === 403) console.log('403 = Summary feature not enabled for this project');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/summary/subject/{{subject_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "summary",
+                "subject",
+                "{{subject_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "14.7 Get Checklists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "if (j && j[0]) { pm.collectionVariables.set('checklist_id', j[0].id); console.log('checklist_id saved:', j[0].id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/checklist?type=questionnaire",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "checklist"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "questionnaire"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "14.8 Evaluate Checklist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.criteria) { j.criteria.forEach(c => console.log(c.result ? '✓' : '✗', c.description)); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/checklist/{{checklist_id}}/evaluate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "checklist",
+                "{{checklist_id}}",
+                "evaluate"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 — IAS Workflow",
+      "description": "Individual Access Services (IAS) is a separate product from Treatment. Patients use authorized applications to request and obtain their own electronic health information from TEFCA-connected organizations. IAS provides patient-directed, interoperable access to those records.\n\nIAS differs from Treatment in two important ways. First, it runs entirely on webhooks — the application receives callbacks at each stage rather than polling for status. Second, the subject is created automatically by xCures after consent and identity verification. Applications do not create IAS subjects directly.\n\nWARNING: Reciprocity is required for IAS. Use folder 12 after retrieving records.\n\nWebhook URLs are registered per Application. To update them (for example, when a patient's consent link expires), use Resend Application Invite (15.3), which also accepts updated webhook URLs.",
+      "item": [
+        {
+          "name": "15.1 Create Application (triggers consent email to patient)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('application_id', j.id); console.log('✓ application_id saved:', j.id); console.log('Consent email sent to patient — wait for webhook callbacks'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\",\n  \"webhooks\": {\n    \"onConsentAccepted\": \"https://your-server.com/webhooks/ias/consent\",\n    \"onQueryComplete\": \"https://your-server.com/webhooks/ias/query-complete\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/application",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "application"
+              ]
+            }
+          }
+        },
+        {
+          "name": "15.2 Get Application (check status after webhooks fire)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "console.log('Application:', JSON.stringify(pm.response.json(), null, 2));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/application/{{application_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "application",
+                "{{application_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "15.3 Resend Application Invite (update webhooks or resend consent email)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "console.log('✓ Invite resent with updated webhooks');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"onConsentAccepted\": \"https://your-server.com/webhooks/ias/consent\",\n  \"onQueryComplete\": \"https://your-server.com/webhooks/ias/query-complete\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/application/{{application_id}}/resend-verification",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "application",
+                "{{application_id}}",
+                "resend-verification"
+              ]
+            }
+          }
+        },
+        {
+          "name": "15.4 Poll Clinical Concepts Status (run after onQueryComplete webhook fires)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.loaded) console.log('✓ Clinical Concepts loaded — proceed to 15.5');",
+                  "else console.log('Still processing — wait 30s and run again');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/subject/{{subject_id}}/status/clinical-concepts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "subject",
+                "{{subject_id}}",
+                "status",
+                "clinical-concepts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "15.5 Export FHIR Bundle (all resources)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('2xx response', () => pm.expect(pm.response.code).to.be.below(300));",
+                  "const j = pm.response.json();",
+                  "if (j.exportUrl) { console.log('✓ Export URL:', j.exportUrl); console.log('JSON Lines format — fetch this URL to download the full FHIR bundle'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/fhir/_export?subjectId={{subject_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "fhir",
+                "_export"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 — Bulk Patient Creation",
+      "description": "To onboard thousands of patients, create each subject and immediately fire a query in the same operation — in the SDK this runs 10 patients concurrently. The two-step sequence per patient is: create subject, then create query.\n\nIn Postman, use the Collection Runner with a CSV data file where each row is a patient. Map columns firstName, lastName, birthDate, gender, postalCode to the request variables. The requests are structured to run per-patient and auto-save IDs between steps.\n\nAll examples use settled-result semantics so a single bad record — a duplicate ID, a validation error, a transient 5xx — is captured without stopping the rest of the batch. Always check the Console for failures after a run and re-queue those patients.",
+      "item": [
+        {
+          "name": "16.1 Create Subject (repeat per patient)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('subject_id', j.id); console.log('✓ Created subject:', j.identifier, '| id:', j.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"{{firstName}}\",\n  \"lastName\": \"{{lastName}}\",\n  \"birthDate\": \"{{birthDate}}\",\n  \"gender\": \"{{gender}}\",\n  \"addressPostalCode\": \"{{postalCode}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/patient-registry/subject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v2",
+                "patient-registry",
+                "subject"
+              ]
+            }
+          }
+        },
+        {
+          "name": "16.2 Create Query for Subject (repeat per patient)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('query_id', j.id); console.log('✓ Query dispatched:', j.id, '| status:', j.ccdaStatus); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query"
+              ]
+            }
+          }
+        },
+        {
+          "name": "16.3 Search All Queries (monitor status across patients)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 2xx', () => pm.expect(pm.response.code).to.be.below(300));",
+                  "const j = pm.response.json();",
+                  "const results = j.results || [];",
+                  "const byStatus = results.reduce((acc, q) => { acc[q.ccdaStatus] = (acc[q.ccdaStatus] || 0) + 1; return acc; }, {});",
+                  "console.log('Query status breakdown:', JSON.stringify(byStatus));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query?pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 — Update Subject",
+      "description": "Update a subject's demographic fields after creation. `firstName` and `lastName` are required on every call; every other field is optional and only the fields you include get changed. Use this when patient information changes (legal name update, corrected DOB, new address) or when you're enriching records from an upstream system. The response is the updated Subject. Requires `subject_id` collection variable.",
+      "item": [
+        {
+          "name": "17.1 Update Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Jones\",\n  \"birthDate\": \"1980-03-15\",\n  \"gender\": \"F\",\n  \"addressPostalCode\": \"55401\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/subject/{{subject_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "subject",
+                "{{subject_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 — Update Document",
+      "description": "Update a document's metadata after upload (rename, change document date, retag location). All body fields are optional; pass only what you want to change. The same endpoint is also shown as the optional step 8.3 inside the Upload Documents flow; this standalone folder mirrors the portal's `update-document` workflow for clients that only need to amend metadata on documents that already exist. Requires `document_id` collection variable.",
+      "item": [
+        {
+          "name": "18.1 Update Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentName\": \"Updated CCDA name.xml\",\n  \"documentDate\": \"2026-01-15\",\n  \"documentLocation\": \"Mayo Clinic - Rochester\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document/{{document_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document",
+                "{{document_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 — Subject Summary",
+      "description": "Fetch the AI-generated subject summary, an overview paragraph plus supporting document references. Returns 200 with the summary when the feature is enabled for the project, or 403 if the project doesn't have the Summary feature provisioned. The same call is also shown as step 14.6 inside the BYOD workflow; this standalone folder mirrors the portal's `subject-summary` workflow for clients who just want the summary on demand. Requires `subject_id` collection variable.",
+      "item": [
+        {
+          "name": "19.1 Get Subject Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 403', () => pm.expect([200,403]).to.include(pm.response.code));",
+                  "if (pm.response.code === 403) console.log('403 = Summary feature not enabled for this project');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/summary/subject/{{subject_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "summary",
+                "subject",
+                "{{subject_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 — Requery Patient",
+      "description": "Dispatch a fresh query against a subject who already exists in xCures. Use this for a roster onboarded weeks ago that needs refreshed records, or for a patient whose previous query errored or returned thin data. The workflow is two halves: discovery (find the subject, inspect prior queries) and the requery itself (create a new query, poll until terminal, confirm new records). The same `queries.create` call is also shown as the optional `4.3b` and `13.3b` sub-steps inside the Treatment and Retrieval Only workflows; this standalone folder mirrors the portal's `requery-patient` workflow for clients who arrive needing the full end-to-end flow. Requires `bearer_token` and `project_id` collection variables. Sets `subject_id` and `query_id` as it goes.",
+      "item": [
+        {
+          "name": "20.1 Find Subject (by external identifier)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "if (!j.results || j.results.length === 0) { console.log('⚠ No subject matched the filter — adjust the identifier query param.'); return; }",
+                  "const s = j.results[0];",
+                  "pm.collectionVariables.set('subject_id', s.id);",
+                  "console.log('✓ Found subject:', s.identifier, '| id:', s.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/subject?identifier=MRN-12345&pageNumber=1&pageSize=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "subject"
+              ],
+              "query": [
+                {
+                  "key": "identifier",
+                  "value": "MRN-12345"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "1"
+                },
+                {
+                  "key": "firstName",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lastName",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "birthDate",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "20.2 List Prior Queries for the Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "const results = j.results || [];",
+                  "console.log(`Found ${j.totalCount} prior quer${j.totalCount === 1 ? 'y' : 'ies'} for this subject.`);",
+                  "results.forEach(q => console.log(`  ${q.id}  status=${q.ccdaStatus}  created=${q.createdAt}`));",
+                  "// Heuristic: skip requery if any query completed in the last 30 days.",
+                  "const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;",
+                  "const recent = results.find(q => q.ccdaStatus === 'completed' && (Date.now() - new Date(q.createdAt).getTime()) < THIRTY_DAYS_MS);",
+                  "if (recent) console.log('ℹ Recent successful query exists — consider skipping 20.3 Requery.');",
+                  "else console.log('ℹ No recent successful query — proceed to 20.3 Requery.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query?subjectId={{subject_id}}&pageNumber=1&pageSize=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "20.3 Requery (creates a new query — dispatches to the network)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "if (j.id) { pm.collectionVariables.set('query_id', j.id); console.log('✓ Requery dispatched — new query_id:', j.id, '— poll with 20.4'); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query"
+              ]
+            }
+          }
+        },
+        {
+          "name": "20.4 Poll Query Status (repeat until completed or exhausted)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('Query status:', j.ccdaStatus, '| id:', j.id);",
+                  "if (j.ccdaStatus === 'completed' || j.ccdaStatus === 'exhausted') console.log('✓ Terminal state reached — run 20.5 to confirm new records.');",
+                  "else if (j.ccdaStatus === 'error') console.log('⚠ status=error — run 20.3 again to requery.');",
+                  "else console.log('Still working — wait ~30s and re-run 20.4.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/query/{{query_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "query",
+                "{{query_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "20.5 Confirm New Records (document count via pageSize=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('Subject now has', j.totalCount, 'document(s) on file.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/document?subjectId={{subject_id}}&pageNumber=1&pageSize=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "document"
+              ],
+              "query": [
+                {
+                  "key": "subjectId",
+                  "value": "{{subject_id}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 — Checklist Item Feedback",
+      "description": "Tell xCures whether a checklist item's evaluation was right for a patient. Run folder 11 (Run Checklist) first to evaluate a checklist — take a checklistId from 11.1 and a checklistItemId from any item in 11.2's response ($.items[*].checklistItem.id), then submit feedback here. feedbackType is one of: positive (evaluated correctly), negative (evaluated incorrectly), or harmful (result could cause patient harm; flags for urgent review). Feedback flows to xCures's clinical team and improves future evaluations for your tenant. Requires subject_id, checklist_id, and checklist_item_id collection variables.",
+      "item": [
+        {
+          "name": "21.1 Submit Checklist Item Feedback",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 201', () => pm.expect([200,201]).to.include(pm.response.code));",
+                  "console.log('Feedback id:', pm.response.text());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "ProjectId",
+                "value": "{{project_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subject_id}}\",\n  \"feedbackType\": \"positive\",\n  \"comment\": \"Correctly matched the inclusion criteria for this patient.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/checklist/{{checklist_id}}/item/{{checklist_item_id}}/feedback",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "checklist",
+                "{{checklist_id}}",
+                "item",
+                "{{checklist_item_id}}",
+                "feedback"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 — List Projects (discover your Project ID)",
+      "description": "Look up the Project IDs your credentials have access to. This is a bootstrap endpoint — no ProjectId header is required. Call it once to find the id value to use in your .env / config, then use that id for all other API calls. Requires only bearer_token.",
+      "item": [
+        {
+          "name": "22.1 List Projects",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const projects = pm.response.json();",
+                  "if (!Array.isArray(projects) || projects.length === 0) { console.log('⚠ No projects returned — check your credentials.'); return; }",
+                  "for (const p of projects) {",
+                  "    console.log('✓ Project:', p.name, '| id:', p.id);",
+                  "}",
+                  "// Auto-set project_id to the first project if not already filled in",
+                  "const current = pm.collectionVariables.get('project_id');",
+                  "if (!current || current === 'PASTE_YOUR_PROJECT_ID_HERE') {",
+                  "    pm.collectionVariables.set('project_id', projects[0].id);",
+                  "    console.log('✓ Auto-set project_id to:', projects[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/patient-registry/project",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient-registry",
+                "project"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

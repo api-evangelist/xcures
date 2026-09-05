@@ -1,23 +1,184 @@
 aid: xcures
 name: xCures
-description: 'xCures is a company surfaced via the API Evangelist harvest backlog (source: secondary-market)
-  and added to the network as a stub for full-pipeline profiling.'
+description: >-
+  xCures operates the Clinical Clarity Engine, an AI platform that retrieves, organizes and structures fragmented
+  patient medical records into decision-ready clinical data. Founded in 2018 and headquartered in Oakland, California,
+  the company connects to national health information networks (Carequality and TEFCA) to pull a patient's longitudinal
+  record across every provider and care location, then applies LLM-based named-entity/relation extraction and
+  retrieval-augmented checklist assertion to normalize it into FHIR R4 resources, OHDSI/OMOP-mapped vocabularies
+  (SNOMED, LOINC, RxNorm) and HL7 mCODE oncology elements, with every field anchored to its source document. The
+  xCures Public API exposes that engine over REST at partner.xcures.com — patient (Subject) registration, network
+  Query dispatch and polling, document retrieval and reciprocity publishing, FHIR resource reads and bulk export,
+  fifteen Clinical Concepts domains, AI Checklist evaluation and subject summaries — authenticated with OAuth 2.0
+  client-credentials bearer tokens scoped by a ProjectId header. Originally an oncology real-world-data platform, it
+  expanded to all therapeutic areas and is sold as SaaS, embedded API connections and de-identified real-world
+  datasets to providers, diagnostics companies, value-based-care organizations and channel partners.
+image: https://xcures.com/wp-content/uploads/2026/06/default-image-sharing.png
 url: https://raw.githubusercontent.com/api-evangelist/xcures/refs/heads/main/apis.yml
 x-type: company
 x-source: harvest:secondary-market
-x-tier: stub
-x-tier-reason: harvest
 specificationVersion: '0.20'
 created: '2026-09-04'
 modified: '2026-09-04'
+position: Producing
 tags:
-- Company
-apis: []
+  - Health
+  - Healthcare
+  - Medical Records
+  - Interoperability
+  - FHIR
+  - Oncology
+  - Real World Data
+  - Clinical Data
+  - Artificial Intelligence
+  - TEFCA
+  - Carequality
+  - Patient Data
+  - HITRUST
+  - HIPAA
+tags_raw:
+  - health
+  - healthcare
+  - medical-records
+  - interoperability
+  - fhir
+  - oncology
+  - real-world-data
+  - clinical-data
+  - artificial-intelligence
+  - tefca
+  - carequality
+  - patient-data
+  - hitrust
+  - hipaa
+apis:
+  - name: xCures Public API
+    description: >-
+      REST API for the xCures Clinical Clarity Engine. Register patients (Subjects), dispatch and poll queries against
+      Carequality/TEFCA health information networks, retrieve and publish clinical documents (including reciprocity
+      back to the network), read normalized FHIR R4 resources and a FHIR bulk export, search fifteen Clinical Concepts
+      domains (conditions, medications, labs, biomarkers, imaging, procedures, allergies, vitals, encounters,
+      demographics, coverage, family history, social history, surveys, radiation), evaluate AI Checklists, and fetch
+      AI-generated subject summaries. OAuth 2.0 client-credentials bearer auth with a required ProjectId header on
+      nearly every operation.
+    humanURL: https://docs.xcures.com/apis/current
+    baseURL: https://partner.xcures.com
+    image: https://xcures.com/wp-content/uploads/2026/06/default-image-sharing.png
+    tags:
+      - Health
+      - Healthcare
+      - Medical Records
+      - Interoperability
+      - FHIR
+      - Clinical Data
+      - Patient Data
+    properties:
+      - type: OpenAPI
+        url: openapi/xcures-patient-registry-api-openapi.yml
+      - type: Documentation
+        url: https://docs.xcures.com/api-introduction
+      - type: APIReference
+        url: https://docs.xcures.com/apis/current
+      - type: GettingStarted
+        url: https://docs.xcures.com/api-introduction
+      - type: Authentication
+        url: authentication/xcures-authentication.yml
+      - type: Postman
+        url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+      - type: ChangeLog
+        url: https://docs.xcures.com/changelog
+      - type: Webhooks
+        url: asyncapi/xcures-application-webhooks.yml
+      - type: ErrorCatalog
+        url: errors/xcures-problem-types.yml
+      - type: RateLimits
+        url: rate-limits/xcures-rate-limits.yml
+      - type: DataModel
+        url: data-model/xcures-data-model.yml
+      - type: Overlay
+        url: overlays/xcures-patient-registry-api-overlay.yaml
 maintainers:
-- FN: Kin Lane
-  email: kin@apievangelist.com
-- FN: APIs.json
-  email: info@apis.io
+  - FN: Kin Lane
+    email: kin@apievangelist.com
+  - FN: APIs.json
+    email: info@apis.io
 common:
-- type: Website
-  url: https://www.nasdaqprivatemarket.com/
+  - type: Website
+    url: https://xcures.com/
+  - type: DeveloperPortal
+    url: https://docs.xcures.com/
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Support
+    url: https://docs.xcures.com/support
+  - type: Blog
+    url: https://xcures.com/blog/
+  - type: GitHubOrganization
+    url: https://github.com/xCures
+  - type: SignUp
+    url: https://xcures.com/contact-us/
+  - type: TermsOfService
+    url: https://xcures.com/terms-of-service/
+  - type: PrivacyPolicy
+    url: https://xcures.com/privacy-security-notice/
+  - type: TrustCenter
+    url: https://xcures.com/trust/
+  - type: Compliance
+    url: https://xcures.com/trust/
+  - type: StatusPage
+    url: https://status.xcures.com/
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: LLMsTxt
+    url: llms/xcures-llms.txt
+  - type: AgentCard
+    url: a2a/xcures-a2a.yml
+  - type: MCPServer
+    url: mcp/xcures-mcp.yml
+  - type: ToolCrosswalk
+    url: mcp/xcures-tool-crosswalk.yml
+  - type: AgentSkill
+    url: skills/_index.yml
+  - type: WellKnown
+    url: well-known/xcures-well-known.yml
+  - type: Conventions
+    url: conventions/xcures-conventions.yml
+  - type: Conformance
+    url: conformance/xcures-conformance.yml
+  - type: Lifecycle
+    url: lifecycle/xcures-lifecycle.yml
+  - type: ChangeLog
+    url: changelog/xcures-changelog.yml
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: DomainSecurity
+    url: security/xcures-domain-security.yml
+  - type: Plans
+    url: plans/xcures-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/xcures-sandbox.yml
+  - type: Packages
+    url: packages/xcures-packages.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: Idempotency
+    url: conventions/xcures-conventions.yml
+  - type: Deprecation
+    url: lifecycle/xcures-lifecycle.yml
+  - type: Examples
+    url: examples/_index.yml
+x-enrichment:
+  date: '2026-09-04'
+  status: enriched
+  artifacts_added: 37
+  pass: local-v3

@@ -1,0 +1,192 @@
+generated: '2026-09-04'
+method: searched
+source: >-
+  https://docs.xcures.com/api-introduction and
+  https://docs.xcures.com/.well-known/agent-skills/*/SKILL.md, cross-checked against
+  openapi/xcures-patient-registry-api-openapi.yml
+api: xCures Public API
+base_url: https://partner.xcures.com
+authentication:
+  style: OAuth 2.0 client-credentials -> HTTP Bearer (JWT)
+  token_endpoint: https://partner.xcures.com/oauth/token
+  request_content_type: application/json
+  request_fields: [client_id, client_secret, grant_type=client_credentials]
+  response_fields: [access_token, token_type]
+  header: 'Authorization: Bearer <access_token>'
+  scopes: none published
+  docs: https://docs.xcures.com/api-introduction#authentication
+  see: authentication/xcures-authentication.yml
+tenancy:
+  header: ProjectId
+  required_on: 67 of 69 operations
+  exempt:
+    - PublicOAuthController_token
+    - PublicProjectController_getAll
+  value: UUID of a project the API client has permission to access
+  discovery: 'GET /api/v1/patient-registry/project (no ProjectId header required)'
+  note: >-
+    This is the single most load-bearing convention in the API. A missing or wrong ProjectId returns 401,
+    not 400 — the docs list "Invalid API key or ProjectId" under 401. Permissions are attached to the
+    credential per project in the portal Administration UI.
+idempotency:
+  coverage: partial
+  mechanism: client-supplied resource identifier
+  header: none
+  scope:
+    - PublicSubjectController_create
+    - PublicSubjectControllerV2_create
+  detail: >-
+    There is no Idempotency-Key header anywhere in the API — the string "idempoten" does not appear once
+    in the 290KB spec. Replay protection exists on exactly one resource: subject creation requires the
+    caller to generate and supply the subject `id` (a UUID) in the request body, and a repeat of the same
+    id returns 409 Conflict with a ProblemDetails body ("title": "Conflict"). That makes patient
+    registration safely re-runnable, which is the operation an agent is most likely to retry, but it
+    covers 2 of the 12 mutating operations. Query dispatch (PublicQueryController_create), document
+    creation, document publish/unpublish, checklist evaluation and checklist feedback have no replay
+    protection at all — and the bulk-patient-onboarding skill warns explicitly that firing both the
+    implicit and an explicit query "would double your query volume against the network", which is the
+    concrete cost of that gap.
+  evidence:
+    - openapi/xcures-patient-registry-api-openapi.yml (409 response on both subject-create operations)
+    - https://docs.xcures.com/.well-known/agent-skills/bulk-patient-onboarding/SKILL.md
+reversibility:
+  grade: documented
+  detail: >-
+    Exactly one write on this API can be taken back, and it is the one that reaches outside the customer's
+    tenancy. Publishing a clinical document to Carequality/TEFCA
+    (PUT /document/{documentId}/reciprocity) is reversed by
+    DELETE /document/{documentId}/reciprocity, which revokes network availability while leaving the
+    document in the project; it can be republished at any time by repeating the publish call. No time
+    window is stated for the reversal, so this grades `documented` rather than `verified`. Every other
+    mutating operation is one-way as documented: a dispatched network query cannot be recalled (the
+    stated remedy for a bad query is to dispatch another), subject creation has no delete operation in
+    the public spec (the Subject schema carries a read-only `deleted` timestamp and search accepts a
+    `deleted` filter, so soft-deletion exists in the platform but is not exposed as a public operation),
+    and checklist evaluation and feedback have no undo.
+  reversals:
+    - action: PublicDocumentController_reciprocity
+      action_summary: Publish Document (to Carequality/TEFCA)
+      reversal: PublicDocumentController_unpublish
+      reversal_summary: Unpublish Document
+      window: not stated
+      docs: https://docs.xcures.com/.well-known/agent-skills/reciprocity/SKILL.md
+  irreversible:
+    - operationId: PublicQueryController_create
+      note: >-
+        Dispatches a live query to national health information networks. No cancel operation. The
+        documented remedy for a failed query is a fresh query, not a recall.
+    - operationId: PublicSubjectControllerV2_create
+      note: >-
+        No public delete operation for a Subject. By default this ALSO auto-fires a network query unless
+        options.initiateEhrQuery is set to false — so the default create is doubly irreversible.
+    - operationId: PublicSubjectController_create
+      note: batch create, same as above (options.initiateEhrQueries)
+    - operationId: PublicChecklistController_evaluate
+      note: no undo; re-evaluating produces a new result rather than reverting one
+dry_run_mode:
+  supported: false
+  detail: >-
+    No dry-run, preview, validate or simulate parameter exists in the spec. The closest published control
+    is options.initiateEhrQuery / options.initiateEhrQueries on subject creation, which decouples
+    registration from network dispatch — it is a real safety valve for agents (create the patient without
+    firing an irreversible network query) but it is not a rehearsal mode.
+pagination:
+  style: page-number
+  request_params:
+    - name: pageNumber
+      in: query
+      default: 1
+      note: 1-based index
+    - name: pageSize
+      in: query
+      default: 50
+    - name: sortField
+      in: query
+      default: created
+    - name: sortIsDescending
+      in: query
+      default: false
+  response_fields: [pageNumber, pageSize, sortField, sortIsDescending, totalCount, results]
+  envelope_schema: PaginationResultDto
+  typed_envelopes: [SubjectPaginationResult, QueryPaginationResult, DocumentPaginationResult]
+  applies_to: 30 list/search operations
+  note: >-
+    totalCount is load-bearing in the published workflows: the api-introduction diagrams instruct callers
+    to read totalCount from a Search Documents call (pageSize=1) to decide whether a query returned
+    anything, and to requery when it is 0.
+filtering:
+  common_query_params:
+    - subjectId
+    - dateStart
+    - dateEnd
+    - searchTerm
+    - searchTermMode
+    - code
+    - codeSystem
+    - deleted
+  note: >-
+    code / codeSystem filtering on the 15 Clinical Concepts search operations is the coded-vocabulary
+    entry point (SNOMED, LOINC, RxNorm per the trust page).
+versioning:
+  style: URI path segment
+  current: v1, with v2 introduced for subject creation only
+  info_version: V1
+  detail: >-
+    /api/v1/patient-registry/* is the whole surface except POST /api/v2/patient-registry/subject, which is
+    the single-subject create. v1 subject create remains the batch endpoint (up to 10 per request). No
+    version header, no date-based pinning.
+  see: lifecycle/xcures-lifecycle.yml
+error_envelope:
+  shape: RFC 7807 / RFC 9457-flavored
+  schema: ProblemDetails
+  fields: [status, title, detail]
+  media_type: application/json
+  conformant: false
+  detail: >-
+    The ProblemDetails schema carries status/title/detail but omits RFC 9457's `type` and `instance`, and
+    nothing in the spec declares the application/problem+json media type — responses are plain
+    application/json. It is problem-details-shaped rather than problem-details-conformant. Most 4xx
+    responses in the spec are declared with a bare status code and no content schema at all; the
+    ProblemDetails example appears on the v2 subject-create 409.
+  see: errors/xcures-problem-types.yml
+rate_limit_signaling:
+  documented_headers: none
+  status_on_exhaustion: 429
+  detail: >-
+    429 is declared on 67 of 69 operations and documented in the API Introduction error table, but no
+    X-RateLimit-*, RateLimit-* or Retry-After header appears anywhere in the spec or docs. An agent gets
+    the rejection with no machine-readable budget or retry hint; the only published guidance is the
+    concurrency ceiling in the bulk skill.
+  see: rate-limits/xcures-rate-limits.yml
+long_running_operations:
+  style: dispatch-then-poll
+  detail: >-
+    Network queries are asynchronous and slow by nature. POST /query dispatches; GET /query/{id} is polled
+    until ccdaStatus/fhirStatus reaches a terminal value (completed, exhausted, error) out of
+    delayed/initiated/pending/inProgress. The docs state ~30 minutes for results to populate and the
+    skills say 20-30 minutes per patient. Extraction completion is a separate poll:
+    GET /subject/{id}/status/clinical-concepts until `loaded` is true.
+  webhooks_alternative: >-
+    The IAS Application flow registers onConsentWebhookUrl, onIdentityValidationWebhookUrl and
+    onQueryResultWebhookUrl so query results can be pushed instead of polled — see
+    asyncapi/xcures-application-webhooks.yml.
+file_transfer:
+  style: pre-signed S3 URLs
+  upload: >-
+    POST /document returns documentId + signedS3Url; the caller PUTs the file bytes directly to that URL
+    with NO Authorization header. Documented explicitly in the byod-ingestion and reciprocity skills.
+  download: >-
+    GET /document/{documentId} returns signedS3Url; GET /document/{documentId}/pdf returns fileName and a
+    signedUrl valid for 15 minutes.
+request_id_tracing:
+  documented: false
+  observed: >-
+    The docs host (Redocly-served) returns an x-request-id header. Nothing equivalent is documented for
+    partner.xcures.com and no correlation header appears in the spec.
+cross_links:
+  - authentication/xcures-authentication.yml
+  - errors/xcures-problem-types.yml
+  - lifecycle/xcures-lifecycle.yml
+  - rate-limits/xcures-rate-limits.yml
+  - data-model/xcures-data-model.yml
+  - conformance/xcures-conformance.yml

@@ -64,5 +64,46 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-xCures is a company surfaced via the API Evangelist harvest backlog (source: secondary-market) and added to the network as a stub for full-pipeline profiling.
-- https://www.nasdaqprivatemarket.com/
+xCures operates the Clinical Clarity Engine, an AI platform that retrieves, organizes and structures
+fragmented patient medical records into decision-ready clinical data. Founded in 2018, it connects to
+national health information networks (Carequality and TEFCA) to assemble a patient's longitudinal record
+across every provider and care location, then normalizes it into FHIR R4, OHDSI/OMOP vocabularies and HL7
+mCODE oncology elements with every field anchored to its source document.
+
+## What this profile covers
+
+The **xCures Public API** — a 69-operation REST API at `https://partner.xcures.com`, documented at
+[docs.xcures.com](https://docs.xcures.com/). OAuth 2.0 client-credentials bearer auth with a required
+`ProjectId` header on 67 of 69 operations.
+
+| | |
+|---|---|
+| Contract | OpenAPI 3.0.0, 63 paths / 69 operations / 64 schemas — [`openapi/`](openapi/) |
+| API reference | https://docs.xcures.com/apis/current |
+| Getting started | https://docs.xcures.com/api-introduction |
+| Base URL | `https://partner.xcures.com` |
+| Auth | OAuth 2.0 client credentials → HTTP Bearer (JWT), plus a `ProjectId` header |
+| Agent surfaces | Six provider-published Agent Skills, an A2A agent card, and a remote MCP server |
+| Pricing | Not published — contact-sales only |
+
+## Notable findings
+
+- **Six provider-published Agent Skills.** xCures serves machine-readable `SKILL.md` workflow guides
+  unauthenticated at `/.well-known/agent-skills/`, with a discovery index carrying a sha256 digest per
+  skill. Announced in the 2026-08-19 changelog. Captured verbatim in [`skills/`](skills/).
+- **A real A2A agent card**, graded *conformant* against the A2A 1.0.0 hard checks — see [`a2a/`](a2a/).
+- **A remote MCP server** at `https://docs.xcures.com/mcp`, OAuth-gated, with RFC 8414 and RFC 9728
+  discovery documents — see [`mcp/`](mcp/).
+- **FHIR R4 is declared in the contract**, not only claimed in marketing: 13 `/fhir/*` operations plus
+  `_export`, with twelve responses defined by reference to the HL7 FHIR R4 Bundle definition.
+- **HITRUST e1 certified**; HIPAA compliant. The SOC 2 Type 2 and ISO 27001 certifications named on the
+  trust page belong to AWS and are inherited, not held by xCures — see
+  [`security/xcures-trust-center.yml`](security/xcures-trust-center.yml).
+- **No first-party SDK exists in any package registry** despite an "SDKs" link in the docs footer; what
+  xCures calls its SDK is a Postman collection and a documentation surface.
+- **Idempotency is partial** — client-supplied subject UUIDs give 409-on-duplicate replay protection on
+  2 of 12 mutating operations; there is no `Idempotency-Key` header anywhere.
+- **One reversible write.** Publishing a document to the exchange network can be unpublished; a
+  dispatched network query cannot be recalled.
+
+Source of record: [`apis.yml`](apis.yml).

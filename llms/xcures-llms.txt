@@ -1,0 +1,8 @@
+# xCures API Hub
+
+> xCures API Hub
+
+## Table of contents
+
+ - [xCures API](https://docs.xcures.com/apis/current.md): # Authentication Our API requires a Bearer Token in the `Authorization` header for auth. Most of our endpoints also require a `ProjectId` header to set the context of the request. It must be one of the projects the api client has permissions to. ### Getting a token To get a token, use your `client_id` and `client_secret` to execute a client credentials exchange. #### Example CURL command: curl --request POST \ --url https://partner.xcures.com/oauth/token \ --header 'content-type: application/json' \ --data '{"client_id":"{your_client_id}","client_secret":"{your_client_secret}","grant_type":"client_credentials"}' #### Response: { "access_token": "{your_temporary_access_token}", "token_type": "Bearer" } ### Using the token with our API: Now just include that bearer token in the `Authorization` header of your requests to our API. #### Example authorized request: curl --request GET \ --url https://partner.xcures.com/api/v1/patient-registry/subject \ --header 'ProjectId: {your_project_id}' \ --header 'authorization: Bearer {your_temporary_access_token}'
+

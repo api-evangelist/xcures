@@ -1,0 +1,117 @@
+generated: '2026-09-04'
+method: searched
+source: https://xcures.com/trust/
+url: https://xcures.com/trust/
+http_status: 200
+title: xCures trust & transparency
+tagline: What we strive for, how we measure it, and where to verify it.
+note: >-
+  Upgraded from the automated probe, which detected the keywords "SOC 2", "ISO 27001" and "HIPAA" on this
+  page and attributed all three to xCures. Reading the page shows that is wrong for two of them: SOC 2
+  Type 2 and ISO 27001:2022 are AWS's, which xCures inherits controls from. The certification xCures
+  itself holds is HITRUST e1, which the keyword probe missed entirely. Attribution is corrected below.
+certifications_held_by_xcures:
+  - name: HITRUST e1 Certification
+    scope: xCures Clinical Clarity Engine
+    status: certified
+    year: 2025
+    upgrade_in_progress: HITRUST i1 Certification (2026)
+    quote: >-
+      "The xCures Clinical Clarity Engine is HITRUST e1 certified (in the process of being upgraded to
+      HITRUST i1 Certification)."
+  - name: HIPAA
+    scope: xCures and the Clinical Clarity Engine, operating as a business associate
+    status: compliant
+    validation: annual HIPAA evaluation plus assessments under the HITRUST certification program
+certifications_inherited_from_aws:
+  attribution_warning: >-
+    NOT xCures certifications. The page states these are held by AWS, that xCures "is able to inherit
+    selected AWS HITRUST r2 controls to include as evidence in xCures's HITRUST certification program",
+    and that it "periodically reviews the AWS ISO 27001 certification and SOC 2 attestation report".
+    Attributing them to xCures overstates its posture.
+  certifications:
+    - name: HITRUST r2 Certification
+      holder: AWS
+    - name: ISO 27001:2022 Certification
+      holder: AWS
+    - name: SOC 2 Type 2 Attestation
+      holder: AWS
+security_controls:
+  - control: Encryption
+    detail: In transit (TLS) and at rest
+  - control: Access Controls
+    detail: RBAC with least-privilege and minimum-necessary principles, MFA, and SSO
+  - control: Audit Logging
+    detail: Immutable logs via AWS + Datadog, SIEM monitoring
+  - control: Data Deletion
+    detail: In accordance with contractual requirements
+  - control: Provenance / audit trail
+    detail: Full CRUD audit logs maintained across all data access and modification events
+data_governance_standards:
+  - standard: FHIR R4
+    detail: All extracted data mapped to FHIR R4 resources for downstream interoperability
+  - standard: OHDSI / OMOP
+    detail: Concepts normalized to OHDSI Standardized Vocabularies (SNOMED, LOINC, RxNorm)
+  - standard: mCODE
+    detail: Oncology-specific data elements aligned to the HL7 Minimal Common Oncology Data Elements profile
+  - standard: HIPAA
+    detail: HIPAA compliant with annual HIPAA evaluation and HITRUST certification program
+ai_model_validation:
+  note: >-
+    Unusual for this catalog and worth recording: xCures publishes measured accuracy for the AI that
+    produces its API's output, with a stated method and a named limitation set. Most AI-in-the-loop
+    providers publish neither.
+  approaches:
+    - name: Schema-based extraction
+      detail: >-
+        NER + relation extraction over unstructured clinical documents into FHIR R4 and OHDSI-normalized
+        structured data, with linkage to source verbatim preserved per element.
+    - name: Checklist-based assertion
+      detail: >-
+        RAG over the full longitudinal record, returning structured outputs with source citations and
+        evidence-hierarchy rules to resolve conflicting documentation.
+  method: >-
+    Validated against clinically trained human reviewers; each field classified TP/TN/FP/FN with
+    third-reviewer arbitration on discrepancies; random 10% audit. Only explicitly stated, verifiable
+    extractions count as true positives — correct inferences not present verbatim are counted as errors.
+  deployment_threshold: accuracy and precision >= 95% before an extractor or checklist enters production
+  published_results:
+    - extractor: Medications
+      accuracy: 95.7%
+      precision: 97.5%
+      recall: 95.0%
+      f1: 96.3%
+    - extractor: Surgical Procedures
+      accuracy: 96.6%
+      precision: 97.7%
+      recall: 98.8%
+      f1: 98.2%
+    - extractor: Cancer Diagnosis
+      accuracy: 98.2%
+      precision: 98.7%
+      recall: 99.4%
+      f1: 99.0%
+    - extractor: Lines of Therapy
+      accuracy: 97.0%
+      precision: 95.4%
+      recall: 99.8%
+      f1: 97.6%
+  results_caveat: >-
+    xCures states these are a retrospective analysis of a defined historical dataset and do not guarantee
+    future performance.
+  source_citation: >-
+    Stuhlmiller TJ et al. "A Scalable Method for Validated Data Extraction from Electronic Health Records
+    with Large Language Models." Submitted for peer review, 2026. Full methods, supplemental tables and
+    raw counts available on request.
+  stated_limitations:
+    - >-
+      OCR quality — accuracy of extraction from scanned or faxed documents depends on document quality;
+      degraded scans may introduce errors or omissions.
+    - >-
+      Semantic search coverage gaps — checklists and schema LLMs rely on semantic search and use only the
+      top N semantically matched documents, so relevant information in lower-ranked documents can be
+      missed.
+  version_control: Extraction models are version-controlled and support rollback; A/B testing guides refinement
+infrastructure:
+  hosting: AWS
+  monitoring: AWS + Datadog, SIEM

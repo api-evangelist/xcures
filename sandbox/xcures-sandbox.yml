@@ -1,0 +1,80 @@
+generated: '2026-09-04'
+method: searched
+source: https://docs.xcures.com/api-introduction#de-identified-demo-patients-for-testing
+api: xCures Public API
+has_sandbox: partial
+model: shared-production-with-published-test-fixtures
+detail: >-
+  xCures publishes NO separate sandbox environment, no test-mode key prefix, no test-vs-live mode switch
+  and no time simulation. There is one base URL (https://partner.xcures.com) and one credential type.
+  What it does publish is a set of THREE FULLY DE-IDENTIFIED DEMO PATIENTS seeded into the platform,
+  which a new integrator can search for and use to exercise the whole read surface — query status,
+  documents, FHIR resources, Clinical Concepts and Checklists — without touching a real patient. That is
+  a real, useful test fixture, but it is a read-safe fixture inside production, not an isolated sandbox: a
+  write on this API (subject creation, query dispatch) still reaches national health information
+  networks.
+environments:
+  - name: production
+    base_url: https://partner.xcures.com
+    oauth_token_url: https://partner.xcures.com/oauth/token
+    note: the only environment published
+test_fixtures:
+  type: de-identified demo patients
+  count: 3
+  how_to_use: >-
+    Authenticate, then call GET /api/v1/patient-registry/subject (Search Subjects) to retrieve them, and
+    use their subjectIds in any subsequent request.
+  source: https://docs.xcures.com/api-introduction#de-identified-demo-patients-for-testing
+  quote: >-
+    "The de-identified demo patients below are a safe starting point. After authenticating, use the Search
+    Subjects request to retrieve them. Then use their subject IDs in any subsequent request to explore
+    available data."
+  patients:
+    - name: Marissa Jones
+      birth_date: '1971-06-29'
+      sex_assigned_at_birth: Female
+      condition: Metastatic Breast Cancer
+    - name: Justin Williams
+      birth_date: '1968-05-28'
+      sex_assigned_at_birth: Male
+      condition: Systemic Mastocytosis
+    - name: Helen Milliken
+      birth_date: '2000-11-16'
+      sex_assigned_at_birth: Female
+      condition: Autoimmune Encephalitis
+  note: >-
+    Published verbatim by xCures on its own public API Introduction page and explicitly described as
+    "fully de-identified patients". No credentials, tokens or identifiers are reproduced here — the demo
+    patients are located by search, not by a published id.
+tooling:
+  postman_collection:
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+    name: xCures SDK — Workflow Playbook
+    http_status: 200
+    requests: 75+
+    file: ../examples/xcures-workflow-playbook.postman_collection.json
+    detail: >-
+      Workflow-first collection organised into 11 numbered folders that mirror the published workflows
+      (auth, first call, patient creation, standard treatment, list subjects, document count, document
+      download, upload, FHIR resources, all 15 Clinical Concepts types). Step 0.1 runs the
+      client-credentials exchange and auto-saves the token to {{bearer_token}}; each step saves the ids
+      the next step needs. Variables (client_id, client_secret, project_id) are filled by the integrator —
+      no credentials ship in the file.
+  console:
+    url: https://docs.xcures.com/apis/current
+    detail: >-
+      The Redocly API Hub reference renders code samples in eight languages (cURL, JavaScript, Python,
+      Node.js, Java, PHP, C#, Ruby). A live Try-It console is part of the platform but requires a real
+      bearer token — there is no anonymous playground.
+absent:
+  test_mode_keys: false
+  test_key_prefix: none published
+  test_cards: n/a (not a payments API)
+  test_clocks: false
+  fixture_triggers: false
+  webhook_simulator: false
+  note: >-
+    The absence that matters most: no way to simulate a network query result. A real query takes 20-30
+    minutes against live Carequality/TEFCA networks and there is no published fast-path, stub or
+    time-simulation for it, so an integration test of the core workflow is inherently slow and touches
+    production exchange networks.

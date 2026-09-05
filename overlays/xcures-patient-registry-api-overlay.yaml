@@ -1,0 +1,164 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the xCures Public API
+  version: 1.0.0
+extends: ../openapi/xcures-patient-registry-api-openapi.yml
+x-generated: '2026-09-04'
+x-method: generated
+x-source: >-
+  Derived from artifacts in this repository — conventions/, errors/, rate-limits/, lifecycle/,
+  conformance/, skills/ and mcp/ — every value traceable to a fetched xCures document. The underlying
+  OpenAPI is never mutated; this overlay records our additions separately.
+actions:
+  - target: $.info
+    description: >-
+      Add contact, license and external documentation metadata the published spec omits (info.contact,
+      info.license and info.termsOfService are all absent upstream), plus the artifact cross-links.
+    update:
+      contact:
+        name: xCures Support
+        email: help@xcures.com
+        url: https://docs.xcures.com/support
+      termsOfService: https://xcures.com/terms-of-service/
+      x-apievangelist-artifacts:
+        conventions: ../conventions/xcures-conventions.yml
+        errors: ../errors/xcures-problem-types.yml
+        rate_limits: ../rate-limits/xcures-rate-limits.yml
+        lifecycle: ../lifecycle/xcures-lifecycle.yml
+        conformance: ../conformance/xcures-conformance.yml
+        data_model: ../data-model/xcures-data-model.yml
+        skills: ../skills/_index.yml
+        sandbox: ../sandbox/xcures-sandbox.yml
+        webhooks: ../asyncapi/xcures-application-webhooks.yml
+      x-apievangelist-note: >-
+        Enhancements only. Nothing here changes the behaviour the provider documents.
+  - target: $
+    description: >-
+      Declare the tenancy, idempotency, reversibility and rate-limit semantics at document level. The
+      published spec declares the ProjectId header per operation but never states what it is for, and
+      states nothing at all about replay protection or reversibility.
+    update:
+      x-agent-readiness:
+        tenancy_header: ProjectId
+        tenancy_discovery: GET /api/v1/patient-registry/project
+        idempotency:
+          coverage: partial
+          mechanism: client-supplied subject UUID; duplicate returns 409 Conflict
+          scope:
+            - PublicSubjectController_create
+            - PublicSubjectControllerV2_create
+          header: none
+        reversibility:
+          grade: documented
+          reversible:
+            - action: PublicDocumentController_reciprocity
+              reversal: PublicDocumentController_unpublish
+              window: not stated
+          irreversible:
+            - PublicQueryController_create
+            - PublicSubjectController_create
+            - PublicSubjectControllerV2_create
+            - PublicChecklistController_evaluate
+        dry_run: false
+        rate_limit_signal:
+          status: 429
+          headers: none published
+          concurrency_ceiling: 10-15 in-flight requests
+  - target: $.security
+    description: >-
+      The document declares no top-level security requirement even though 68 of 69 operations carry
+      security [{bearer: []}]. Add it so a generated client defaults to authenticated.
+    update:
+      - bearer: []
+  - target: $.components.schemas.ProblemDetails
+    description: >-
+      Record that the error envelope is RFC 9457-SHAPED but not conformant — `type` and `instance` are
+      absent and no response declares application/problem+json.
+    update:
+      x-rfc9457-conformant: false
+      x-missing-members:
+        - type
+        - instance
+      x-declared-media-type: application/json
+  - target: $.paths['/api/v2/patient-registry/subject'].post
+    description: >-
+      Mark the sole idempotent-by-client-key operation and its irreversible side effect, both of which the
+      published spec leaves to prose in the changelog and the Agent Skills.
+    update:
+      x-idempotency:
+        supported: true
+        mechanism: client-supplied `id` UUID in the request body
+        duplicate_response: 409 Conflict (ProblemDetails)
+      x-consequence:
+        class: irreversible
+        detail: >-
+          Unless options.initiateEhrQuery is false, this ALSO dispatches a live query to national health
+          information networks. There is no cancel operation and no delete operation for a Subject.
+        safe_mode: 'options: { initiateEhrQuery: false }'
+  - target: $.paths['/api/v1/patient-registry/subject'].post
+    description: Same, for the v1 batch create.
+    update:
+      x-idempotency:
+        supported: true
+        mechanism: client-supplied `id` UUID per subject
+        duplicate_response: 409 Conflict
+      x-batch:
+        max_items: 10
+        failure_isolation: per-subject `failureReason` in the result array, input order preserved
+      x-consequence:
+        class: irreversible
+        safe_mode: 'options: { initiateEhrQueries: false }'
+  - target: $.paths['/api/v1/patient-registry/query'].post
+    description: Flag the highest-consequence operation on the API.
+    update:
+      x-consequence:
+        class: irreversible
+        detail: >-
+          Dispatches a live query to Carequality/TEFCA on behalf of a real patient. No cancel. Completion
+          takes 20-30 minutes. Double-dispatch is a documented hazard — the bulk-onboarding skill warns it
+          "would double your query volume against the network".
+        recovery: dispatch a fresh query; there is no recall
+  - target: $.paths['/api/v1/patient-registry/document/{documentId}/reciprocity'].put
+    description: Record the one reversible write on the API, and its documented 403 cause.
+    update:
+      x-reversible:
+        reversal: PublicDocumentController_unpublish
+        reversal_method: DELETE
+        window: not stated — republish is possible at any time
+      x-preconditions:
+        - documentDate must be set at document creation or publish is rejected
+        - Reciprocity must be enabled on the project with Requester and Encounter Information configured
+      x-common-failure:
+        status: 403
+        meaning: Reciprocity not yet enabled on the project
+  - target: $.paths['/api/v1/patient-registry/application'].post
+    description: Surface the webhook registration this operation performs.
+    update:
+      x-webhooks-registered:
+        - onConsentWebhookUrl
+        - onIdentityValidationWebhookUrl
+        - onQueryResultWebhookUrl
+      x-webhook-gaps:
+        payload_schemas: none published
+        signing: none published
+        retries: none published
+  - target: $.tags[?(@.name=='FHIR')]
+    description: Bind the FHIR tag to the domain standard it implements.
+    update:
+      x-domain-standard:
+        id: fhir
+        name: HL7 FHIR R4
+        version: R4
+        evidence: >-
+          Twelve resource reads plus /_export; twelve response definitions reference
+          https://hl7.org/fhir/R4/bundle.html as the response shape.
+  - target: $.paths['/api/v1/patient-registry/query/{id}'].get
+    description: Make the polling contract explicit for an agent.
+    update:
+      x-polling:
+        poll_until: ccdaStatus in [completed, exhausted, error]
+        typical_duration: 20-30 minutes
+        interval_guidance: not published; run polling as a separate pass, not interleaved with creation
+        error_handling: >-
+          `error` -> dispatch a fresh query. `exhausted` -> terminal, no documented remedy. `completed`
+          with 0 documents -> re-check demographics and requery.

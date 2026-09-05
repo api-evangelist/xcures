@@ -1,0 +1,126 @@
+generated: '2026-09-04'
+method: probed
+source: live GET probes of /.well-known/* on every host this record knows
+note: >-
+  Six hosts were probed: the registrable domain and www, the API host from servers[]
+  (partner.xcures.com), the docs/console host (docs.xcures.com), the status host and the support host.
+  Only docs.xcures.com serves real /.well-known documents. IMPORTANT FALSE-POSITIVE NOTE:
+  partner.xcures.com answers HTTP 200 with the same 2,045-byte SPA shell for EVERY /.well-known path
+  probed, including agent-card.json and security.txt; none of those is a document and all are recorded
+  below as html-shell misses. xcures.com (WordPress) and status.xcures.com return honest 404s.
+  No security.txt is served anywhere on the domain, so no SecurityTxt pointer is emitted.
+hosts:
+  - host: xcures.com
+    documents:
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/openid-configuration
+        status: 404
+      - path: /.well-known/oauth-authorization-server
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+      - path: /.well-known/ai-plugin.json
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+      - path: /.well-known/oauth-protected-resource
+        status: 404
+  - host: www.xcures.com
+    documents:
+      - path: /.well-known/security.txt
+        status: 301
+        note: redirects to https://xcures.com/ (apex), probed there
+      - path: /.well-known/agent-card.json
+        status: 301
+        note: redirects to apex
+  - host: docs.xcures.com
+    documents:
+      - path: /.well-known/agent-card.json
+        status: 200
+        file: ../a2a/xcures-agent-card.json
+        content_type: application/json
+        note: >-
+          Real A2A Agent Card (protocolVersion 0.3.0) naming the xCures API Hub, six published skills and
+          an MCP extension at https://docs.xcures.com/mcp. Saved verbatim under a2a/.
+      - path: /.well-known/agent-skills/index.json
+        status: 200
+        file: xcures-agent-skills-index.json
+        content_type: application/json
+        note: >-
+          Agent Skills discovery document ($schema schemas.agentskills.io/discovery/0.2.0) listing six
+          provider-authored SKILL.md files with sha256 digests. Announced in the 2026-08-19 changelog entry.
+      - path: /.well-known/oauth-authorization-server
+        status: 200
+        file: xcures-docs-oauth-authorization-server.json
+        content_type: application/json
+        note: >-
+          RFC 8414 metadata for the DOCS PORTAL / MCP login (issuer https://auth.cloud.redocly.com, the
+          Redocly Realm platform xCures runs its API Hub on). This is NOT the xCures API's own OAuth
+          server — that is https://partner.xcures.com/oauth/token, client-credentials, which publishes no
+          discovery document.
+      - path: /.well-known/oauth-protected-resource/mcp
+        status: 200
+        file: xcures-docs-oauth-protected-resource-mcp.json
+        content_type: application/json
+        note: >-
+          RFC 9728 protected-resource metadata for the MCP endpoint, returned in the WWW-Authenticate
+          challenge on an anonymous tools/list POST.
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/openid-configuration
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+      - path: /.well-known/ai-plugin.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+      - path: /.well-known/oauth-protected-resource
+        status: 404
+  - host: partner.xcures.com
+    documents:
+      - path: /.well-known/security.txt
+        status: 200
+        note: html-shell — SPA catch-all, 2045 bytes of HTML, not a document. Treated as a miss.
+      - path: /.well-known/openid-configuration
+        status: 200
+        note: html-shell — SPA catch-all, not a document. Treated as a miss.
+      - path: /.well-known/oauth-authorization-server
+        status: 200
+        note: html-shell — SPA catch-all, not a document. Treated as a miss.
+      - path: /.well-known/api-catalog
+        status: 200
+        note: html-shell — SPA catch-all, not a document. Treated as a miss.
+      - path: /.well-known/ai-plugin.json
+        status: 200
+        note: html-shell — SPA catch-all, not a document. Treated as a miss.
+      - path: /.well-known/agent-card.json
+        status: 200
+        note: html-shell — SPA catch-all, not a document. Treated as a miss.
+      - path: /.well-known/agent.json
+        status: 200
+        note: html-shell — SPA catch-all, not a document. Treated as a miss.
+      - path: /.well-known/oauth-protected-resource
+        status: 200
+        note: html-shell — SPA catch-all, not a document. Treated as a miss.
+  - host: status.xcures.com
+    documents:
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+  - host: support.xcures.com
+    documents:
+      - path: /.well-known/security.txt
+        status: 301
+        note: whole host 301s to a ClickUp-hosted support form (forms.clickup.com)
+      - path: /.well-known/agent-card.json
+        status: 301
+        note: whole host 301s to forms.clickup.com

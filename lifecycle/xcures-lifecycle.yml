@@ -1,0 +1,87 @@
+generated: '2026-09-04'
+method: searched
+source: https://docs.xcures.com/changelog and openapi/xcures-patient-registry-api-openapi.yml
+api: xCures Public API
+versioning:
+  scheme: URI path segment
+  current: v1 (with v2 for single-subject creation)
+  info_version: V1
+  detail: >-
+    Every operation lives under /api/v1/patient-registry/* except POST /api/v2/patient-registry/subject.
+    v2 is not a wholesale replacement — it is a per-resource evolution of subject creation
+    (single-subject, returns the subject immediately); v1 subject create remains the batch endpoint. No
+    version header, no date-pinned versions.
+  policy_published: false
+  note: >-
+    xCures publishes no written versioning policy. The scheme is inferred from the paths and confirmed by
+    the changelog's per-endpoint treatment of v1 vs v2.
+deprecation:
+  policy_published: false
+  practice_observed: true
+  headers:
+    sunset: not used
+    deprecation: not used
+    rfc8594: false
+  deprecated_operations: []
+  detail: >-
+    No operation in the spec carries `deprecated: true`, and no Sunset or Deprecation response header
+    appears anywhere. There is, however, a REAL AND SPECIFIC ANNOUNCED DEPRECATION in the changelog, which
+    is why a Deprecation pointer is emitted: the 2026-05-08 entry states that the implicit coupling of
+    subject creation to network querying "will be fully deprecated at a later date. At that point, you
+    will need to call both POST /api/v2/patient-registry/subject and POST /api/v1/patient-registry/query
+    explicitly and in sequence to maintain your current workflow. A separate notice with the effective
+    date will be communicated in advance." The interim opt-out (options.initiateEhrQuery, default true)
+    shipped in that same release, so callers can migrate ahead of the date.
+  announced_deprecations:
+    - subject: implicit EHR query on subject creation
+      announced: '2026-05-08'
+      effective_date: not yet announced
+      migration: >-
+        Pass options.initiateEhrQuery false on subject create and dispatch
+        POST /api/v1/patient-registry/query explicitly.
+      advance_notice_promised: true
+      source: https://docs.xcures.com/changelog
+    - subject: legacy OAuth endpoint and all API credentials created before December 2025
+      announced: '2025-12-04'
+      effective_date: '2026-01-31'
+      migration: >-
+        Create new credentials with the self-service API Credential Management tool in the portal; new
+        credentials work only against POST /oauth/token, legacy credentials only against the previous
+        (now undocumented) OAuth endpoint.
+      advance_notice_promised: true
+      completed: true
+      source: https://docs.xcures.com/changelog
+      note: >-
+        This is the one place xCures has demonstrated an end-to-end deprecation in public: announced with
+        a named effective date, roughly eight weeks of notice, a self-service migration path, and a
+        replacement endpoint documented before the old one was removed. It is evidence of practice rather
+        than of a published policy — there is still no written deprecation policy or Sunset header.
+status_page:
+  url: https://status.xcures.com/
+  http_status: 200
+  verified: '2026-09-04'
+  machine_readable_api: false
+  detail: >-
+    A hosted status page is served and linked from the docs footer as "Service Status". It exposes no
+    JSON API — /api/v2/summary.json, /api/v2/status.json and /history.json all 404 — so uptime and
+    incident history are human-readable only.
+changelog:
+  url: https://docs.xcures.com/changelog
+  http_status: 200
+  dated: true
+  entries_published: 7
+  window: 2025-12-04 to 2026-08-19
+  see: changelog/xcures-changelog.yml
+sla:
+  published: false
+  detail: No public SLA, uptime commitment or support-response target is published. Support is CSM-mediated.
+support:
+  primary: Customer Success Manager (named contact per customer)
+  email: help@xcures.com
+  form: https://support.xcures.com/ (redirects to a ClickUp-hosted intake form)
+  docs: https://docs.xcures.com/support
+release_cadence:
+  observed: >-
+    Seven dated changelog entries between 2025-12-04 and 2026-08-19 — roughly one every 5-6 weeks, with a
+    gap between 2026-05-13 and 2026-08-19. Changes are additive (new endpoints, new optional flags, new
+    published artifacts); no breaking change has shipped in the published window.

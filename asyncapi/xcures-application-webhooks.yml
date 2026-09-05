@@ -1,0 +1,65 @@
+generated: '2026-09-04'
+method: derived
+source: openapi/xcures-patient-registry-api-openapi.yml (components.schemas.CreateApplication, Application, ApplicationWebhooks)
+api: xCures Public API
+type: webhook-catalog
+asyncapi_published: false
+asyncapi_note: >-
+  xCures publishes NO AsyncAPI document. /asyncapi.yaml 404s on the docs host and returns the SPA shell on
+  partner.xcures.com, and no event/streaming spec appears in the GitHub org or the docs. None was
+  generated — this file is a catalog of the webhook surface the OpenAPI itself declares, not a fabricated
+  event spec.
+surface:
+  scope: Individual Access Services (IAS) Application flow only
+  registration: per-Application, at creation time
+  registered_by:
+    - POST /api/v1/patient-registry/application (operationId PublicApplicationController_create)
+  read_back:
+    - GET /api/v1/patient-registry/application/{id} (operationId PublicApplicationController_get)
+  schema: ApplicationWebhooks
+  transport: HTTPS POST to a caller-supplied URL
+  detail: >-
+    The webhook surface is narrow and specific. It is not an account-wide event bus: three callback URLs
+    are supplied as fields on an individual Application (the identity-proofing/eConsent record a patient
+    must complete for the IAS workflow), and xCures calls them for that applicant. Subjects, queries,
+    documents, clinical concepts and checklists outside the IAS flow have NO webhook — those are polled
+    (see conventions/xcures-conventions.yml, long_running_operations).
+webhooks:
+  - name: onConsent
+    field: onConsentWebhookUrl
+    trigger: an applicant accepts or denies consent
+    description_verbatim: Webhook URL to invoke when an applicant accepts or denies consent.
+    example_url: https://example.com/webhooks/consent
+    payload_documented: false
+  - name: onIdentityValidation
+    field: onIdentityValidationWebhookUrl
+    trigger: a result is available for an applicant's identity validation
+    description_verbatim: >-
+      Webhook URL to invoke when there's a result for an applicant's identity validation.
+    example_url: https://example.com/webhooks/identity-validation
+    payload_documented: false
+  - name: onQueryResult
+    field: onQueryResultWebhookUrl
+    trigger: a result is available for an applicant's EHR query
+    description_verbatim: Webhook URL to invoke when there's a result for an applicant's EHR query.
+    example_url: https://example.com/webhooks/ehr-query
+    payload_documented: false
+    significance: >-
+      This is the one push alternative to the 20-30 minute polling loop that dominates every other xCures
+      workflow — but it is only available inside the IAS Application flow.
+gaps:
+  payload_schemas: >-
+    None published. The spec declares only the three URL string fields; there is no request-body schema,
+    no example event, and no webhooks: block (this is OpenAPI 3.0.0, which has no webhooks keyword). An
+    integrator cannot know the shape of the delivered event from public material.
+  signing_and_verification: >-
+    No signature header, shared secret, HMAC scheme or verification procedure is documented anywhere. An
+    implementer has no published way to verify that a callback came from xCures — a material gap for a
+    surface carrying PHI-adjacent state changes.
+  delivery_semantics: >-
+    No retry policy, ordering guarantee, at-least-once/at-most-once statement, timeout or dead-letter
+    behavior is published.
+  registration_management: >-
+    URLs are set at Application creation. No update or delete operation for a registered webhook appears
+    in the spec (there is no PUT on the application resource), so changing a callback URL for an existing
+    applicant has no documented public path.

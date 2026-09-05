@@ -1,0 +1,65 @@
+generated: '2026-09-04'
+method: searched
+source: >-
+  https://docs.xcures.com/api-introduction#api-error-handling,
+  https://docs.xcures.com/.well-known/agent-skills/bulk-patient-onboarding/SKILL.md, and
+  openapi/xcures-patient-registry-api-openapi.yml
+api: xCures Public API
+limit_count: 1
+note: >-
+  xCures publishes NO numeric rate limit — no requests-per-second, per-minute or per-day figure appears
+  anywhere in the docs or the spec. What it does publish is (a) a 429 declared on 67 of 69 operations and
+  described in the error table, and (b) one concrete, actionable concurrency ceiling inside its own
+  bulk-onboarding Agent Skill. The single entry below is that ceiling. It is guidance rather than a
+  contract, and it is recorded as such.
+rate_limits:
+  - scope: per-credential concurrency (in-flight requests)
+    window: concurrent
+    limit: 15
+    limit_lower_bound: 10
+    burst: null
+    unit: requests in flight
+    enforcement: soft — exceeding it produces 429 responses rather than a hard block
+    source: https://docs.xcures.com/.well-known/agent-skills/bulk-patient-onboarding/SKILL.md
+    quote: >-
+      "Keep no more than 10 to 15 requests in flight at once across steps 2 and 4. Beyond that, expect
+      429 responses; back off rather than increasing concurrency further."
+    applies_to: bulk subject creation and query dispatch; stated in the bulk-onboarding context
+response_headers:
+  published: []
+  x_ratelimit: false
+  ratelimit_draft: false
+  retry_after: false
+  detail: >-
+    No X-RateLimit-*, RateLimit-* or Retry-After header is documented or declared in the spec — the
+    strings do not appear once in the 290KB contract. THIS IS THE GAP THAT MATTERS FOR AN AGENT: it gets
+    a 429 with no budget, no reset time and no retry hint, so the only correct strategy is blind
+    exponential backoff under the published concurrency ceiling. Two response headers are declared in the
+    spec (content-type on 13 operations, expires on 1); neither is a rate-limit signal.
+status_on_exhaustion:
+  code: 429
+  title: Too Many Requests
+  documented_meaning: Too many requests are hitting the API in a short duration.
+  declared_on_operations: 67
+  source: https://docs.xcures.com/api-introduction#api-error-handling
+batch_limits:
+  - operation: PublicSubjectController_create
+    limit: 10
+    unit: subjects per request
+    source: https://docs.xcures.com/.well-known/agent-skills/bulk-patient-onboarding/SKILL.md
+    quote: >-
+      "Split your roster into chunks of at most 10 patients. POST /api/v1/patient-registry/subject accepts
+      up to 10 subjects per request."
+other_time_bounds:
+  note: These are not rate limits but they bound how an agent must pace itself against this API.
+  bounds:
+    - subject: network query completion
+      value: 20-30 minutes per patient
+      source: https://docs.xcures.com/api-introduction
+    - subject: signed PDF download URL validity
+      value: 15 minutes
+      source: https://docs.xcures.com/changelog
+probed: false
+probe_note: >-
+  No live rate-limit probe was run. Every operation on partner.xcures.com requires a bearer token, and
+  this pipeline holds no credentials; an unauthenticated request returns 401 before any limit applies.

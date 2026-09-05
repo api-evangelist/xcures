@@ -1,0 +1,97 @@
+generated: '2026-09-04'
+method: searched
+source: https://docs.xcures.com/changelog
+api: xCures Public API
+scheme: dated entries, newest first, each structured as "What's New" / "Why It Matters" / "What You Need to Do"
+current_version: V1 (v2 for single-subject creation)
+url: https://docs.xcures.com/changelog
+http_status: 200
+window: 2025-12-04 to 2026-08-19
+entry_count: 7
+entries:
+  - date: '2026-08-19'
+    breaking: false
+    additions:
+      - Published six Agent Skills for AI coding agents, served unauthenticated as SKILL.md documents
+      - New discovery endpoint https://docs.xcures.com/.well-known/agent-skills/index.json
+    highlights: >-
+      "The xCures API now publishes Agent Skills for AI coding agents. Each skill is a short, step-by-step
+      guide to one workflow. An agent can follow the steps directly instead of inferring them from the
+      OpenAPI reference." Five were named at launch (standard treatment, BYOD ingestion, retrieval only,
+      requery, bulk onboarding); a sixth, reciprocity, is present in the served index. Skills are public,
+      no authentication required.
+    action_required: none
+  - date: '2026-05-13'
+    breaking: false
+    additions:
+      - GET /api/v1/patient-registry/document/{documentId}/pdf returning fileName and a signedUrl
+    highlights: >-
+      Direct PDF download for patient documents. Signed URLs are valid for 15 minutes. Requires a valid
+      ProjectId header and Bearer token like every other document endpoint.
+    action_required: none
+  - date: '2026-05-08'
+    breaking: false
+    deprecation_announced: true
+    additions:
+      - options.initiateEhrQuery (boolean, default true) on POST /api/v1/patient-registry/subject
+      - options.initiateEhrQuery (boolean, default true) on POST /api/v2/patient-registry/subject
+    highlights: >-
+      Interim step toward decoupling Subject creation from network Querying. Previously a single subject
+      create automatically triggered a network query; the new optional flag opts out. Rationale given:
+      batch processing flexibility, full auditability (every action becomes an intentional logged call),
+      and independent error reporting. The implicit combined behavior "will be fully deprecated at a later
+      date" with advance notice.
+    action_required: >-
+      None immediately — the flag defaults to true and preserves existing behavior. Pass
+      options.initiateEhrQuery false to opt out.
+  - date: '2026-03-25'
+    breaking: false
+    additions:
+      - Thumbs Up / Thumbs Down rating on checklist results and justifications
+      - Report-a-response option to flag a result for high-stakes clinical review by xCures
+    highlights: >-
+      Feedback controls on Checklist output, surfaced in the API as
+      POST /checklist/{checklistId}/item/{checklistItemId}/feedback.
+    action_required: none
+  - date: '2026-02-20'
+    breaking: false
+    additions:
+      - createdFrom and createdTo timestamp parameters on the Search Queries endpoint
+      - >-
+        Document Update endpoint (PUT /document/{documentId}) updating a limited set of properties:
+        document date, document location, document name
+      - >-
+        OpenAPI update on Document Search — informationTypes retyped from an array of strings to Document
+        Classifications (still an array of strings), in support of the next-generation Document
+        Classifications release
+    highlights: >-
+      "This release expands the public xCures API to make the platform easier to integrate with. The
+      following capabilities are now supported, based on customer feedback."
+    action_required: none
+  - date: '2025-12-18'
+    breaking: false
+    additions:
+      - Launched the public API documentation site at https://docs.xcures.com
+      - Legacy documentation now routes to the new site automatically
+    highlights: >-
+      Consolidated API reference, full request and response examples, user guides and real-world use-case
+      examples onto one site for both technical and operational audiences.
+    action_required: none
+  - date: '2025-12-04'
+    breaking: true
+    additions:
+      - New /oauth/token endpoint
+      - Self-service API Credential Management in the portal UI (create, deactivate, rotate)
+    highlights: >-
+      Self-service API credential and token management for connected client applications. The previous
+      OAuth endpoint was removed from public documentation; pre-existing credentials continued to work
+      only against that previous endpoint, and new credentials work only against /oauth/token.
+    breaking_detail: >-
+      A hard credential cutover with a stated date: "All API credentials created before December of 2025
+      will be deactivated after January 31st, 2026 and you will need to create new credentials beforehand
+      using the new self-service method." This is the only breaking change in the published window, and it
+      shipped with roughly eight weeks of notice.
+    effective_date: '2026-01-31'
+    action_required: >-
+      Provision new credentials with the self-service tool before January 2026; all pre-existing
+      credentials were deactivated after 2026-01-31.

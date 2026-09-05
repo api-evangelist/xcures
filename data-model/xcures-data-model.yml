@@ -1,0 +1,447 @@
+generated: '2026-09-04'
+method: derived
+source: >-
+  openapi/xcures-patient-registry-api-openapi.yml — components.schemas $ref links and *Id reference
+  fields, enriched from https://docs.xcures.com/api-introduction (entity glossary) and the spec's own
+  tag descriptions
+api: xCures Public API
+schema_count: 64
+entities:
+  - name: Project
+    role: >-
+      The tenancy boundary and the unit of entitlement. Its UUID is the ProjectId header required on 67 of
+      69 operations, and permissions are granted per credential per project. A project also carries a
+      workflow type (Standard Treatment, Retrieval Only, BYOD, IAS) that determines whether reciprocity is
+      obligatory.
+    id_format: uuid
+    discovery: GET /api/v1/patient-registry/project
+  - name: Subject
+    role: >-
+      An individual patient on the xCures Platform, and the root of everything else. The id is
+      CLIENT-SUPPLIED — the caller generates the UUID — which is what makes creation replay-safe (409 on a
+      duplicate). Also carries a server-assigned human-readable 6-character `identifier`, a read-only
+      `deleted` timestamp, and demographic fields whose completeness drives patient-matching quality
+      across the exchange networks.
+    id_format: uuid (client-supplied)
+    tag: Subject
+  - name: Application
+    role: >-
+      The IAS onboarding record: identity proofing and eConsent a patient must complete before progressing
+      on the platform. Holds the three webhook callback URLs and resolves to a Subject once accepted.
+    id_format: uuid (client-supplied)
+    tag: Application
+  - name: Query
+    role: >-
+      A dispatched request for a patient's records across Carequality/TEFCA. Asynchronous: fhirStatus and
+      ccdaStatus each walk delayed -> initiated -> pending -> inProgress -> completed | exhausted | error,
+      and queryAttempts records the per-network attempts.
+    id_format: string
+    tag: Query
+  - name: Document
+    role: >-
+      A retrieved or uploaded patient record. Source is one of fhir, ccda, box, userUpload, patientFhir.
+      Carries a signedS3Url for direct transfer and can be published back to the network for reciprocity.
+    schemas: [DocumentDetail, DocumentSummary, CreateDocumentRequest, CreateDocumentResponse, UpdateDocumentRequest, DocumentReciprocityDto, DocumentPdfUrlDto, DocumentSectionDto]
+    tag: Document
+  - name: ClinicalConcept
+    role: >-
+      "A proprietary xCures higher-level, flattened, filtered, opinionated view of medical record
+      information, structured around FHIR guidelines" (spec tag text). Fifteen typed DTOs — condition,
+      medication, allergy, procedure, biomarker, coverage, demographic, encounter, family_history,
+      imaging, lab, social_history, survey, radiation, vital — each with a search and a get-by-id
+      operation, all filterable by code + codeSystem.
+    variants: 15
+    tag: Clinical Concepts
+  - name: Checklist
+    role: >-
+      The AI decision surface. A checklist definition holds ChecklistItems; evaluating it against a
+      subject returns a ChecklistEvaluationResult whose items each carry a justification, the
+      ClinicalConcepts consulted and the DocumentSections cited — the provenance chain the trust page
+      describes.
+    tag: Checklist
+  - name: SubjectSummary
+    role: AI-generated narrative of a subject's overall record, with referencedDocuments citations.
+    tag: Summary
+  - name: ReciprocityTemplate
+    role: >-
+      A per-project document template (PublishDocumentTemplateDto) selected when publishing a document
+      back to the network. Scoped to a project and a provider organization.
+    tag: Reciprocity Template
+  - name: FHIR resources
+    role: >-
+      Twelve FHIR R4 resource reads plus a bulk _export. Not modelled as components.schemas — the
+      responses are declared by reference to https://hl7.org/fhir/R4/bundle.html, so the FHIR shapes come
+      from the standard rather than from this contract.
+    tag: FHIR
+core_graph:
+  - Project has_many Subject (via the ProjectId header, not a body field)
+  - Subject has_many Query
+  - Subject has_many Document
+  - Subject has_many ClinicalConcept (all 15 types, via the subjectId query parameter)
+  - Subject has_one SubjectSummary
+  - Subject has_many ChecklistEvaluationResult
+  - Application resolves_to Subject
+  - Query has_many QueryAttempt
+  - Checklist has_many ChecklistItem
+  - ChecklistEvaluationResult has_many ChecklistItemEvaluationResult
+  - ChecklistItemEvaluationResult cites ClinicalConcept and DocumentSection
+  - DocumentSection belongs_to Document
+  - Document published_via ReciprocityTemplate
+id_conventions:
+  format: >-
+    UUID v4 throughout, with no type prefixes (unlike Stripe-style prefixed ids). Subject, Application and
+    Project ids are UUIDs; Query and Document ids are declared as plain strings. There is no way to tell
+    an id's type from its value.
+  client_supplied:
+    - Subject.id
+    - Application.id
+  note: >-
+    Client-supplied ids are the single most important modelling decision in this API. They are what make
+    subject creation idempotent, they let a caller correlate their own records to xCures without a lookup
+    table, and they are why a 409 is a success signal rather than a failure.
+  external_identifiers: >-
+    Subject.externalIdentifiers (SubjectExternalIdentifier[]) is the documented anchor for a caller's own
+    MRN or system id, and the requery skill names it as a search field.
+relationships:
+  - from: Application
+    to: Cohort
+    kind: belongs_to
+    via: cohortId
+    resolved: true
+  - from: Application
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: CreateApplication
+    to: Cohort
+    kind: belongs_to
+    via: cohortId
+    resolved: true
+  - from: CreateApplicationResponse
+    to: Cohort
+    kind: belongs_to
+    via: cohortId
+    resolved: true
+  - from: SubjectTagDto
+    to: ProjectTag
+    kind: belongs_to
+    via: projectTagId
+    resolved: false
+  - from: SubjectTagDto
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: SubjectTagDto
+    to: Organization
+    kind: belongs_to
+    via: organizationId
+    resolved: false
+  - from: SubjectTagDto
+    to: Project
+    kind: belongs_to
+    via: projectId
+    resolved: true
+  - from: Subject
+    to: SubjectExternalIdentifier
+    kind: has_many
+    via: externalIdentifiers
+  - from: Subject
+    to: SubjectAdditionalName
+    kind: has_many
+    via: additionalNames
+  - from: Subject
+    to: SubjectAddressDto
+    kind: has_many
+    via: additionalAddresses
+  - from: Subject
+    to: SubjectTagDto
+    kind: has_many
+    via: tags
+  - from: SubjectPaginationResult
+    to: Subject
+    kind: has_many
+    via: results
+  - from: CreateSubject
+    to: SubjectExternalIdentifier
+    kind: has_many
+    via: externalIdentifiers
+  - from: CreateSubject
+    to: SubjectAdditionalName
+    kind: has_many
+    via: additionalNames
+  - from: CreateSubject
+    to: SubjectAddressDto
+    kind: has_many
+    via: additionalAddresses
+  - from: CreateSubject
+    to: SubjectTagDto
+    kind: has_many
+    via: tags
+  - from: CreateSubjectBatch
+    to: CreateSubject
+    kind: has_many
+    via: subjects
+  - from: CreateSubjectBatch
+    to: CreateSubjectBatchOptions
+    kind: has_one
+    via: options
+  - from: CreateSubjectResult
+    to: SubjectExternalIdentifier
+    kind: has_many
+    via: externalIdentifiers
+  - from: CreateSubjectResult
+    to: SubjectAdditionalName
+    kind: has_many
+    via: additionalNames
+  - from: CreateSubjectResult
+    to: SubjectAddressDto
+    kind: has_many
+    via: additionalAddresses
+  - from: CreateSubjectResult
+    to: SubjectTagDto
+    kind: has_many
+    via: tags
+  - from: UpdateSubject
+    to: SubjectExternalIdentifier
+    kind: has_many
+    via: externalIdentifiers
+  - from: UpdateSubject
+    to: SubjectAdditionalName
+    kind: has_many
+    via: additionalNames
+  - from: UpdateSubject
+    to: SubjectAddressDto
+    kind: has_many
+    via: additionalAddresses
+  - from: UpdateSubject
+    to: SubjectTagDto
+    kind: has_many
+    via: tags
+  - from: QueryAttempt
+    to: Query
+    kind: belongs_to
+    via: queryId
+    resolved: false
+  - from: Query
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: Query
+    to: User
+    kind: belongs_to
+    via: userId
+    resolved: true
+  - from: Query
+    to: QueryAttempt
+    kind: has_many
+    via: queryAttempts
+  - from: QueryPaginationResult
+    to: Query
+    kind: has_many
+    via: results
+  - from: GetQueryResponse
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: GetQueryResponse
+    to: User
+    kind: belongs_to
+    via: userId
+    resolved: true
+  - from: CreateQueryDto
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: QueryDto
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: QueryDto
+    to: User
+    kind: belongs_to
+    via: userId
+    resolved: true
+  - from: QueryDto
+    to: ExternalPatient
+    kind: belongs_to
+    via: externalPatientId
+    resolved: false
+  - from: QueryDto
+    to: ExternalQuery
+    kind: belongs_to
+    via: externalQueryId
+    resolved: false
+  - from: ReferencedDocumentDto
+    to: DocumentDetail
+    kind: belongs_to
+    via: documentId
+    resolved: true
+  - from: SubjectSummaryDto
+    to: ReferencedDocumentDto
+    kind: has_many
+    via: referencedDocuments
+  - from: CreateDocumentRequest
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: CreateDocumentResponse
+    to: DocumentDetail
+    kind: belongs_to
+    via: documentId
+    resolved: true
+  - from: DocumentSummary
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: DocumentSummary
+    to: Source
+    kind: belongs_to
+    via: sourceId
+    resolved: false
+  - from: DocumentPaginationResult
+    to: DocumentSummary
+    kind: has_many
+    via: results
+  - from: DocumentDetail
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: DocumentDetail
+    to: Source
+    kind: belongs_to
+    via: sourceId
+    resolved: false
+  - from: DocumentReciprocityDto
+    to: PublishDocumentTemplateDto
+    kind: belongs_to
+    via: templateId
+    resolved: true
+  - from: PublishDocumentTemplateDto
+    to: Project
+    kind: belongs_to
+    via: projectId
+    resolved: true
+  - from: PublishDocumentTemplateDto
+    to: ProviderOrganization
+    kind: belongs_to
+    via: providerOrganizationId
+    resolved: false
+  - from: ChecklistItem
+    to: LibraryItem
+    kind: belongs_to
+    via: libraryItemId
+    resolved: false
+  - from: Checklist
+    to: ChecklistItem
+    kind: has_many
+    via: items
+  - from: ChecklistEvaluationRequest
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: ClinicalConceptDto
+    to: ClinicalConceptDto
+    kind: belongs_to
+    via: clinicalConceptId
+    resolved: true
+  - from: DocumentSectionDto
+    to: DocumentDetail
+    kind: belongs_to
+    via: documentId
+    resolved: true
+  - from: ChecklistItemEvaluationResult
+    to: ChecklistItemDefinition
+    kind: belongs_to
+    via: checklistItemDefinitionId
+    resolved: false
+  - from: ChecklistItemEvaluationResult
+    to: ChecklistItemDefinitionVersion
+    kind: belongs_to
+    via: checklistItemDefinitionVersionId
+    resolved: false
+  - from: ChecklistItemEvaluationResult
+    to: ClinicalConceptDto
+    kind: has_many
+    via: clinicalConcepts
+  - from: ChecklistItemEvaluationResult
+    to: DocumentSectionDto
+    kind: has_many
+    via: documentSections
+  - from: ChecklistEvaluationResult
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: ChecklistEvaluationResult
+    to: Checklist
+    kind: belongs_to
+    via: checklistId
+    resolved: true
+  - from: ChecklistEvaluationResult
+    to: ChecklistItemEvaluationResult
+    kind: has_many
+    via: items
+  - from: ChecklistItemFeedbackRequest
+    to: Subject
+    kind: belongs_to
+    via: subjectId
+    resolved: true
+  - from: ClinicalConceptCoverageDto
+    to: Subscriber
+    kind: belongs_to
+    via: subscriberId
+    resolved: false
+  - from: CreateSubjectV2
+    to: SubjectExternalIdentifier
+    kind: has_many
+    via: externalIdentifiers
+  - from: CreateSubjectV2
+    to: SubjectAdditionalName
+    kind: has_many
+    via: additionalNames
+  - from: CreateSubjectV2
+    to: SubjectAddressDto
+    kind: has_many
+    via: additionalAddresses
+  - from: CreateSubjectV2
+    to: SubjectTagDto
+    kind: has_many
+    via: tags
+  - from: CreateSubjectV2
+    to: CreateSubjectOptions
+    kind: has_one
+    via: options
+
+unresolved_targets:
+  note: >-
+    These *Id fields reference entities that have NO schema in the public contract — they are internal or
+    portal-managed objects an API consumer can read an id for but never fetch. Recorded honestly rather
+    than invented: 13 of the 70 derived edges point outside the published model.
+  targets:
+    - ProjectTag
+    - Organization
+    - Source
+    - ExternalPatient
+    - ExternalQuery
+    - ProviderOrganization
+    - LibraryItem
+    - ChecklistItemDefinition
+    - ChecklistItemDefinitionVersion
+    - Subscriber
+    - Cohort
+    - User
+pagination_envelopes:
+  - PaginationResultDto (generic)
+  - SubjectPaginationResult
+  - QueryPaginationResult
+  - DocumentPaginationResult

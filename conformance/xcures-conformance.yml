@@ -1,0 +1,215 @@
+generated: '2026-09-04'
+method: searched
+source: >-
+  https://xcures.com/trust/ (compliance + standards claims) and
+  openapi/xcures-patient-registry-api-openapi.yml (contract-level evidence)
+api: xCures Public API
+conformance:
+  - id: fhir
+    name: HL7 FHIR R4
+    conforms: true
+    evidence: >-
+      DECLARED IN THE CONTRACT, not merely claimed in prose. The spec ships a first-class FHIR tag
+      ("Fast Healthcare Interoperability Resource ... developed by HL7 International") and 13 FHIR
+      operations under /api/v1/patient-registry/fhir/: allergyintolerance, basic, careplan, coverage,
+      condition, diagnosticreport, encounter, medicationstatement, patient, procedure, observation,
+      specimen, plus /fhir/_export. Twelve of them declare a `default` response whose description links
+      directly to https://hl7.org/fhir/R4/bundle.html — the FHIR R4 Bundle definition — so the response
+      body IS a FHIR Bundle by reference to the standard's own document.
+    evidence_url: https://docs.xcures.com/apis/current
+    spec_location: paths./api/v1/patient-registry/fhir/*.get.responses.default.description
+  - id: fhir-bulk-data-export
+    name: FHIR Bulk Data Access ($export)
+    conforms: partial
+    evidence: >-
+      GET /api/v1/patient-registry/fhir/_export (operationId PublicFhirController_export, summary "Export
+      FHIR Resources") uses the FHIR Bulk Data `_export` operation name and returns
+      FhirExportResponseDto. The Postman collection labels it "Export FHIR Bundle (all resources, JSON
+      Lines format)", which matches the ndjson shape the Bulk Data IG specifies. It is not asserted as a
+      full HL7 Bulk Data IG implementation — the spec declares no Prefer:respond-async / kick-off +
+      polling status endpoint, so this is recorded as partial.
+    evidence_url: https://docs.xcures.com/apis/current
+  - id: mcode
+    name: HL7 mCODE (Minimal Common Oncology Data Elements)
+    conforms: true
+    evidence: >-
+      Trust page, Standards compliance table: "mCODE — Oncology-specific data elements aligned to HL7
+      Minimal Common Oncology Data Elements profile". Provider claim on their own trust page; not
+      independently visible in the public contract, which exposes generic Clinical Concepts DTOs rather
+      than mCODE profile names.
+    evidence_url: https://xcures.com/trust/
+  - id: ohdsi-omop
+    name: OHDSI / OMOP Common Data Model vocabularies
+    conforms: true
+    evidence: >-
+      Trust page: "Concepts normalized to OHDSI Standardized Vocabularies (SNOMED, LOINC, RxNorm)" and
+      "processing textual information into FHIR R4 and OHDSI-normalized structured data". The contract
+      corroborates the vocabulary surface: the 15 Clinical Concepts search operations all accept `code`
+      and `codeSystem` query parameters.
+    evidence_url: https://xcures.com/trust/
+  - id: carequality
+    name: Carequality trusted exchange framework
+    conforms: true
+    evidence: >-
+      The Query tag in the spec defines a query as "A specified, approved request for patient records
+      across the network (e.g., via Carequality/TEFCA to support treatment activities, via TEFCA for IAS
+      queries)". Reciprocity (publish back to the network) is a QHIN participation obligation the docs
+      describe as mandatory for Treatment and Retrieval Only projects.
+    evidence_url: https://docs.xcures.com/api-introduction#reciprocity-workflow
+  - id: tefca
+    name: TEFCA / QHIN participation (incl. Individual Access Services)
+    conforms: true
+    evidence: >-
+      Same Query tag text plus the Application tag: "Account creation (e.g., identity proofing, eConsent)
+      required for a patient to progress on the xCures Platform. This is a required step in the
+      Individual Access Services (IAS) workflow use case." IAS is a TEFCA exchange purpose, and the
+      Application flow implements its identity-proofing and consent prerequisites.
+    evidence_url: https://docs.xcures.com/apis/current
+  - id: hipaa
+    name: HIPAA
+    conforms: true
+    evidence: >-
+      Trust page FAQ: "Operating as your business associate, xCures and the xCures Clinical Clarity
+      Engine is HIPAA compliant. xCures conducts an annual HIPAA evaluation to validate HIPAA compliance."
+    evidence_url: https://xcures.com/trust/
+  - id: hitrust
+    name: HITRUST e1 Certification
+    conforms: true
+    evidence: >-
+      Trust page: "The xCures Clinical Clarity Engine is HITRUST e1 certified (in the process of being
+      upgraded to HITRUST i1 Certification)"; the FAQ dates the e1 certification to 2025 and the i1
+      upgrade to 2026. This is the certification xCures itself holds.
+    evidence_url: https://xcures.com/trust/
+  - id: oauth2-client-credentials
+    name: OAuth 2.0 client credentials grant (RFC 6749 s4.4)
+    conforms: true
+    evidence: >-
+      POST https://partner.xcures.com/oauth/token with client_id, client_secret and
+      grant_type=client_credentials, returning access_token + token_type. Documented in info.description
+      of the spec and on the API Introduction page, and declared as operationId
+      PublicOAuthController_token.
+    evidence_url: https://docs.xcures.com/api-introduction#obtaining-a-bearer-token
+    deviation: >-
+      The token request is sent as application/json rather than the RFC's
+      application/x-www-form-urlencoded, and no scope parameter or scope surface is published.
+  - id: rfc7807-rfc9457
+    name: Problem Details for HTTP APIs (RFC 7807 / RFC 9457)
+    conforms: false
+    evidence: >-
+      The spec defines components.schemas.ProblemDetails with status/title/detail, and the v2
+      subject-create 409 returns it. But `type` and `instance` are absent and no response declares the
+      application/problem+json media type — it is problem-details-SHAPED, not conformant. Recorded false
+      deliberately so the shape is not credited as the standard.
+    evidence_url: https://docs.xcures.com/apis/current
+  - id: rfc9728-oauth-protected-resource
+    name: OAuth 2.0 Protected Resource Metadata (RFC 9728)
+    conforms: true
+    evidence: >-
+      https://docs.xcures.com/.well-known/oauth-protected-resource/mcp returns 200 with resource,
+      authorization_servers, bearer_methods_supported and scopes_supported, and the MCP endpoint's 401
+      carries WWW-Authenticate: Bearer resource_metadata="...". Applies to the docs/MCP surface, not to
+      the xCures Public API at partner.xcures.com.
+    evidence_url: https://docs.xcures.com/.well-known/oauth-protected-resource/mcp
+  - id: rfc8414-authorization-server-metadata
+    name: OAuth 2.0 Authorization Server Metadata (RFC 8414)
+    conforms: true
+    evidence: >-
+      https://docs.xcures.com/.well-known/oauth-authorization-server returns 200 with issuer, jwks_uri,
+      authorization_endpoint, token_endpoint, registration_endpoint and S256 PKCE. Again scoped to the
+      docs/MCP login (issuer https://auth.cloud.redocly.com), not to the Public API.
+    evidence_url: https://docs.xcures.com/.well-known/oauth-authorization-server
+  - id: a2a-agent-card
+    name: A2A Agent Card discovery
+    conforms: true
+    evidence: >-
+      https://docs.xcures.com/.well-known/agent-card.json returns 200 with a card graded conformant
+      against the A2A 1.0.0 hard checks (capabilities object, protocolVersion present, skills array),
+      declaring protocolVersion 0.3.0.
+    evidence_url: https://docs.xcures.com/.well-known/agent-card.json
+  - id: agent-skills-discovery
+    name: Agent Skills discovery 0.2.0
+    conforms: true
+    evidence: >-
+      https://docs.xcures.com/.well-known/agent-skills/index.json declares
+      $schema https://schemas.agentskills.io/discovery/0.2.0/schema.json and lists six skill-md entries
+      with sha256 digests, all of which resolve to served SKILL.md documents.
+    evidence_url: https://docs.xcures.com/.well-known/agent-skills/index.json
+  - id: llms-txt
+    name: llms.txt
+    conforms: true
+    evidence: >-
+      Served on both hosts: https://docs.xcures.com/llms.txt (API Hub table of contents) and
+      https://xcures.com/llms.txt (marketing site, generated by Yoast SEO v28.4). No llms-full.txt.
+    evidence_url: https://docs.xcures.com/llms.txt
+  - id: pagination
+    name: Consistent pagination convention
+    conforms: true
+    evidence: >-
+      PaginationResultDto (pageNumber/pageSize/sortField/sortIsDescending/totalCount/results) with typed
+      envelopes for Subject, Query and Document, applied across 30 list operations.
+    evidence_url: https://docs.xcures.com/apis/current
+  - id: idempotency
+    name: Idempotent write semantics
+    conforms: false
+    evidence: >-
+      No Idempotency-Key header exists anywhere in the API. Client-supplied UUIDs give replay protection
+      (409 Conflict) on the two subject-create operations only — 2 of 12 mutating operations. See
+      conventions/xcures-conventions.yml.
+  - id: openid-connect
+    name: OpenID Connect
+    conforms: false
+    evidence: >-
+      No /.well-known/openid-configuration is served on any xCures host (404 on xcures.com and
+      docs.xcures.com; partner.xcures.com answers 200 with an SPA shell for every path, which is not a
+      document).
+  - id: scim
+    name: SCIM
+    conforms: false
+    evidence: No SCIM schema URN or /scim path appears in the contract; user provisioning is via the portal UI.
+  - id: odata
+    name: OData
+    conforms: false
+    evidence: No $metadata surface or OData query options; filtering is bespoke query parameters.
+domain_standard:
+  market: healthcare interoperability / clinical data exchange
+  standards_declared_in_contract:
+    - id: fhir
+      name: HL7 FHIR R4
+      signature: >-
+        13 dedicated /fhir/* operations plus /fhir/_export, a declared FHIR tag naming HL7 International,
+        and 12 response definitions that point at https://hl7.org/fhir/R4/bundle.html as the response
+        shape.
+      spec_location: paths./api/v1/patient-registry/fhir/*
+    - id: mcode
+      name: HL7 mCODE
+      signature: Claimed on the trust page's Standards compliance table; not visible in the public contract.
+      spec_location: null
+    - id: tefca-ias
+      name: TEFCA Individual Access Services
+      signature: >-
+        The Application resource implements IAS prerequisites (identity proofing, eConsent) and the
+        Application tag names IAS explicitly.
+      spec_location: tags[name=Application].description
+  verdict: >-
+    xCures declares its market's dominant standard IN the contract rather than only in marketing prose.
+    A buyer who already speaks FHIR R4 reads normalized resources straight out of
+    /api/v1/patient-registry/fhir/* with no bespoke connector. The proprietary Clinical Concepts surface
+    ("a proprietary xCures higher-level, flattened, filtered, opinionated view ... structured around FHIR
+    guidelines", per the spec's own tag description) sits alongside FHIR as an easier-to-consume
+    alternative, not as a replacement for it.
+certifications:
+  held_by_xcures:
+    - name: HITRUST e1
+      status: certified 2025, upgrade to HITRUST i1 in progress 2026
+    - name: HIPAA
+      status: compliant; annual HIPAA evaluation; operates as a business associate
+  inherited_from_aws:
+    attribution_note: >-
+      IMPORTANT ATTRIBUTION: the trust page names SOC 2 Type 2, ISO 27001:2022 and HITRUST r2 as AWS's
+      certifications, which xCures inherits selected controls from and periodically reviews. They are NOT
+      xCures certifications and must not be attributed to xCures.
+    certifications:
+      - name: HITRUST r2
+      - name: ISO 27001:2022
+      - name: SOC 2 Type 2
+  evidence_url: https://xcures.com/trust/

@@ -1,0 +1,97 @@
+generated: '2026-09-04'
+method: searched
+source: >-
+  registry.npmjs.org, pypi.org, rubygems.org, crates.io, packagist.org, api.github.com, and
+  https://docs.xcures.com/ (footer "SDKs" link)
+api: xCures Public API
+official_sdk_count: 0
+packages: []
+finding: >-
+  xCures ships NO first-party client library in any public package registry. Every registry was queried
+  unauthenticated on 2026-09-04 and every one came back empty: npm search "xcures" total 0,
+  pypi.org/pypi/xcures/json 404, rubygems.org/api/v1/gems/xcures.json 404, crates.io search total 0,
+  packagist search empty, no Maven/NuGet coordinate. The company's GitHub organization
+  (https://github.com/xCures, created 2019-11-01) is public but holds only two research repositories —
+  dateparser_with_bounds (Python) and keras_lstm_vae (Jupyter) — neither of which is an API client.
+  This matters because the surface LOOKS like it has SDKs: the docs footer carries an "SDKs" link, the
+  changelog page is titled "Release notes and changes for the xCures API and client SDKs", and the
+  Postman collection is named "xCures SDK — Workflow Playbook". What xCures calls its SDK is a
+  documentation and Postman surface, not a distributed library.
+registry_probes:
+  - registry: npm
+    query: https://registry.npmjs.org/-/v1/search?text=xcures
+    result: 0 packages
+    version: null
+  - registry: pypi
+    query: https://pypi.org/pypi/xcures/json
+    status: 404
+    version: null
+  - registry: rubygems
+    query: https://rubygems.org/api/v1/gems/xcures.json
+    status: 404
+    version: null
+  - registry: crates.io
+    query: https://crates.io/api/v1/crates?q=xcures
+    result: 0 crates
+    version: null
+  - registry: packagist
+    query: https://packagist.org/search.json?q=xcures
+    result: empty
+    version: null
+  - registry: github
+    query: https://api.github.com/orgs/xcures/repos
+    result: 2 repositories, neither an API client
+    version: null
+gated_surface:
+  - name: xCures SDK documentation page
+    url: https://docs.xcures.com/sdk
+    status: 200
+    effective_url: https://auth.cloud.redocly.com/login?challenge=...
+    note: >-
+      The docs footer "SDKs" link 302s to the Redocly portal login. So does /faq and
+      /platform_user_guide. If a distributable client library exists it is behind that customer login and
+      is not publicly enumerable; nothing is asserted about it here.
+distributed_artifacts:
+  note: >-
+    These are the things a developer actually downloads from xCures today. Neither is a versioned package
+    and neither has a registry metadata endpoint, so version and published are recorded null with the
+    reason.
+  artifacts:
+    - name: xCures SDK — Workflow Playbook (Postman collection)
+      registry: direct-download
+      url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+      http_status: 200
+      official: true
+      version: null
+      published: null
+      version_note: >-
+        Checked, nothing to record. The file carries an internal _postman_id of
+        "xcures-sdk-workflows-v1" but no semantic version, no dated release and no registry entry, and
+        the download URL is unpinned — it floats to whatever is current, so a consumer cannot tell what
+        they are getting either.
+      contents: 75+ requests across 11 workflow folders
+      file: ../examples/xcures-workflow-playbook.postman_collection.json
+    - name: xCures Agent Skills
+      registry: direct-download
+      url: https://docs.xcures.com/.well-known/agent-skills/index.json
+      http_status: 200
+      official: true
+      version: null
+      published: '2026-08-19'
+      version_note: >-
+        No version field on the skills or the index. Each entry does carry a sha256 digest, which pins
+        content without naming a version; the publication date is taken from the changelog entry that
+        announced them.
+      contents: 6 SKILL.md documents
+      file: ../skills/_index.yml
+third_party:
+  note: NOT official. Recorded only so it is not mistaken for a first-party SDK on a later pass.
+  packages:
+    - name: xcures_day
+      repo: https://github.com/Daylily-Informatics/xcures_day
+      language: Python
+      description: python wrapper for the xcures REST api
+      official: false
+      registry: none (GitHub source only, not published to PyPI)
+      version: null
+      published: null

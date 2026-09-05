@@ -1,0 +1,54 @@
+generated: '2026-09-04'
+method: searched
+source: https://xcures.com/ (site navigation and footer), https://xcures.com/contact-us/
+api: xCures Public API
+plan_count: 0
+pricing_published: false
+pricing_url: null
+note: >-
+  xCures publishes no pricing of any kind. There is no /pricing page (https://xcures.com/pricing/ returns
+  404), no plans or tiers page, no per-call rate card, and no free tier or self-serve signup. The site's
+  only commercial calls to action are "Contact Us" and "Request a Demo", and API credentials are issued
+  by a Customer Success Manager after a contract — the API Introduction opens with "Once you receive your
+  xCures patient registry portal credentials from your Customer Success Manager". This is a
+  contact-sales-only, enterprise-contracted API. Recorded as plan_count 0 deliberately rather than
+  omitted: the absence is the finding.
+access_model:
+  onboarding: sales-gated
+  self_serve_signup: false
+  free_tier: false
+  trial: false
+  credentials_issued_by: Customer Success Manager (then self-managed in the portal Administration UI)
+  contact: https://xcures.com/contact-us/
+commercial_shapes_named_publicly:
+  note: >-
+    Not price points — these are the product shapes xCures describes on its own site and in its press,
+    recorded because they are how the API is bought, not what it costs.
+  shapes:
+  - shape: SaaS platform license
+    source: https://xcures.com/now-available-for-all-therapeutic-areas-saas/
+  - shape: Direct API connections embedded in existing healthcare workflow platforms
+    source: https://xcures.com/channel-partnerships/
+  - shape: De-identified real-world datasets for secondary research and partner analytics
+    source: https://xcures.com/evidence-grade-data/
+project_types:
+  note: >-
+    Projects are the unit of entitlement (the ProjectId header), and the docs name four workflow types
+    whose obligations differ — the closest thing to a published product tiering.
+  types:
+  - name: Standard Treatment
+    reciprocity_required: true
+  - name: Retrieval Only
+    reciprocity_required: true
+    processing: no extraction or Clinical Concepts processing
+  - name: Bring Your Own Data (BYOD)
+    reciprocity_required: false
+    processing: xCures normalizes customer-supplied records into FHIR R4 and Clinical Concepts
+  - name: Individual Access Services (IAS)
+    reciprocity_required: true
+    note: patient-directed, webhook-driven; requires identity proofing and eConsent via the Application resource
+evidence:
+  - url: https://xcures.com/pricing/
+    status: 404
+  - url: https://xcures.com/contact-us/
+    status: 200

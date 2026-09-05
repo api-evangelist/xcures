@@ -1,0 +1,279 @@
+generated: '2026-09-04'
+method: derived
+source: >-
+  skills/*.md (six SKILL.md documents fetched verbatim from
+  https://docs.xcures.com/.well-known/agent-skills/) bound to operationIds in
+  openapi/xcures-patient-registry-api-openapi.yml
+note: >-
+  xCures' MCP server (https://docs.xcures.com/mcp) is auth-gated, so its live tools/list could not be
+  introspected and NO MCP tool names are asserted here. What xCures does publish unauthenticated is a
+  six-entry Agent Skills catalog that the same MCP server fronts (the agent card lists exactly these six
+  as its skills[]). This crosswalk therefore binds each PUBLISHED SKILL to the REST operations its own
+  steps name, verbatim — every operationId below was grepped out of the spec, none inferred. Confidence
+  is high throughout because each skill states its endpoints as literal method + path strings; it is not
+  a semantic guess. Coverage counts are skill-to-REST, not tool-to-REST.
+surfaces:
+  openapi:
+    file: openapi/xcures-patient-registry-api-openapi.yml
+    server: https://partner.xcures.com
+    operations: 69
+    gated: false
+  mcp:
+    url: https://docs.xcures.com/mcp
+    gated: true
+    gate: OAuth 2.0 (RFC 9728 challenge on anonymous tools/list)
+  agent_skills:
+    index: https://docs.xcures.com/.well-known/agent-skills/index.json
+    gated: false
+    count: 6
+  graphql: null
+crosswalk:
+  - tool: standard-treatment-workflow
+    category: patient-onboarding
+    binding: skill-to-rest
+    confidence: high
+    rest:
+      - PublicSubjectControllerV2_create
+      - PublicQueryController_search
+      - PublicQueryController_create
+      - PublicQueryController_get
+      - PublicDocumentController_getAll
+      - PublicClinicalConceptsController_searchConditions
+      - PublicChecklistController_list
+      - PublicChecklistController_evaluate
+    note: >-
+      Skill step 5 names clinical-concepts/{type} generically across all 15 concept types; the
+      Conditions operation is listed as the representative binding and the other 14 search operations
+      are the same shape.
+  - tool: byod-ingestion
+    category: data-ingestion
+    binding: skill-to-rest
+    confidence: high
+    rest:
+      - PublicSubjectControllerV2_create
+      - PublicDocumentController_create
+      - PublicSubjectController_getClinicalConceptsStatus
+      - PublicClinicalConceptsController_searchConditions
+      - PublicSummaryController_subjectSummary
+      - PublicChecklistController_list
+      - PublicChecklistController_evaluate
+    note: >-
+      Step 3 is an HTTP PUT to the pre-signed S3 URL returned by PublicDocumentController_create. That
+      upload is not an xCures API operation and has no operationId — see mcp_only[] below.
+  - tool: retrieval-only
+    category: record-retrieval
+    binding: skill-to-rest
+    confidence: high
+    rest:
+      - PublicSubjectControllerV2_create
+      - PublicQueryController_create
+      - PublicQueryController_get
+      - PublicDocumentController_getAll
+      - PublicDocumentController_getPdfById
+      - PublicReciprocityTemplateController_list
+      - PublicDocumentController_create
+      - PublicDocumentController_reciprocity
+  - tool: requery-patient
+    category: patient-maintenance
+    binding: skill-to-rest
+    confidence: high
+    rest:
+      - PublicSubjectController_get
+      - PublicSubjectController_search
+      - PublicQueryController_search
+      - PublicQueryController_create
+      - PublicQueryController_get
+      - PublicDocumentController_getAll
+      - PublicClinicalConceptsController_searchConditions
+  - tool: bulk-patient-onboarding
+    category: patient-onboarding
+    binding: skill-to-rest
+    confidence: high
+    rest:
+      - PublicSubjectController_create
+      - PublicQueryController_create
+      - PublicQueryController_get
+    note: >-
+      Uses the v1 batch create (max 10 subjects per request, per-subject failureReason isolation), not
+      the v2 single-subject create the other skills use.
+  - tool: reciprocity
+    category: network-obligation
+    binding: skill-to-rest
+    confidence: high
+    rest:
+      - PublicReciprocityTemplateController_list
+      - PublicDocumentController_create
+      - PublicDocumentController_reciprocity
+      - PublicDocumentController_unpublish
+mcp_only:
+  - tool: signed-s3-upload
+    reason: >-
+      Three skills (byod-ingestion, retrieval-only, reciprocity) instruct an HTTP PUT of file bytes
+      directly to the signedS3Url returned by PublicDocumentController_create. It is a pre-signed
+      storage upload outside the xCures API surface, carries no Authorization header, and has no
+      operationId in the spec — so it is a real step an agent must take that the OpenAPI does not
+      describe.
+  - tool: docs-search
+    reason: >-
+      The MCP server is described in the agent card as exposing "documentation tools and skills". Any
+      documentation-retrieval tools it ships have no REST counterpart on partner.xcures.com. Names and
+      schemas unknown — the endpoint is auth-gated and none is asserted.
+rest_only_note: >-
+  36 of the 69 REST operations are named by no published skill. They are listed in full below and are
+  the surface an agent would have to work out from the OpenAPI alone: the entire IAS Application
+  flow (identity proofing / eConsent / webhook registration), all 12 FHIR resource reads plus the FHIR
+  bulk export, all 15 Clinical Concepts get-by-id operations, subject and document updates, checklist
+  item feedback, and the project listing.
+rest_only:
+  - operationId: PublicApplicationController_get
+    method: GET
+    path: /api/v1/patient-registry/application/{id}
+    summary: Get Application
+  - operationId: PublicApplicationController_create
+    method: POST
+    path: /api/v1/patient-registry/application
+    summary: Create Application
+  - operationId: PublicApplicationController_resendVerification
+    method: POST
+    path: /api/v1/patient-registry/application/{id}/resend-verification
+    summary: Resend Application Invite
+  - operationId: PublicSubjectController_update
+    method: PUT
+    path: /api/v1/patient-registry/subject/{id}
+    summary: Update Subject
+  - operationId: PublicSummaryController_subjectSummary
+    method: GET
+    path: /api/v1/patient-registry/summary/subject/{subjectId}
+    summary: Subject Summary
+  - operationId: PublicFhirController_allergyIntolerance
+    method: GET
+    path: /api/v1/patient-registry/fhir/allergyintolerance
+    summary: Allergy Intolerances
+  - operationId: PublicFhirController_basic
+    method: GET
+    path: /api/v1/patient-registry/fhir/basic
+    summary: Basics
+  - operationId: PublicFhirController_carePlan
+    method: GET
+    path: /api/v1/patient-registry/fhir/careplan
+    summary: Care Plans
+  - operationId: PublicFhirController_coverage
+    method: GET
+    path: /api/v1/patient-registry/fhir/coverage
+    summary: Coverages
+  - operationId: PublicFhirController_condition
+    method: GET
+    path: /api/v1/patient-registry/fhir/condition
+    summary: Conditions
+  - operationId: PublicFhirController_diagnosticReport
+    method: GET
+    path: /api/v1/patient-registry/fhir/diagnosticreport
+    summary: Diagnostic Reports
+  - operationId: PublicFhirController_encounter
+    method: GET
+    path: /api/v1/patient-registry/fhir/encounter
+    summary: Encounters
+  - operationId: PublicFhirController_medicationstatement
+    method: GET
+    path: /api/v1/patient-registry/fhir/medicationstatement
+    summary: Medication Statements
+  - operationId: PublicFhirController_patient
+    method: GET
+    path: /api/v1/patient-registry/fhir/patient
+    summary: Patients
+  - operationId: PublicFhirController_procedure
+    method: GET
+    path: /api/v1/patient-registry/fhir/procedure
+    summary: Procedures
+  - operationId: PublicFhirController_observation
+    method: GET
+    path: /api/v1/patient-registry/fhir/observation
+    summary: Observations
+  - operationId: PublicFhirController_specimen
+    method: GET
+    path: /api/v1/patient-registry/fhir/specimen
+    summary: Specimens
+  - operationId: PublicFhirController_export
+    method: GET
+    path: /api/v1/patient-registry/fhir/_export
+    summary: Export FHIR Resources
+  - operationId: PublicDocumentController_update
+    method: PUT
+    path: /api/v1/patient-registry/document/{documentId}
+    summary: Update Document
+  - operationId: PublicChecklistController_submitItemFeedback
+    method: POST
+    path: /api/v1/patient-registry/checklist/{checklistId}/item/{checklistItemId}/feedback
+    summary: Submit Checklist Item Feedback
+  - operationId: PublicClinicalConceptsController_getCondition
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/condition/{id}
+    summary: Get Clinical Concept Condition
+  - operationId: PublicClinicalConceptsController_getMedication
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/medication/{id}
+    summary: Get Clinical Concept Medication
+  - operationId: PublicClinicalConceptsController_getAllergy
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/allergy/{id}
+    summary: Get Clinical Concept Allergy
+  - operationId: PublicClinicalConceptsController_getProcedure
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/procedure/{id}
+    summary: Get Clinical Concept Procedure
+  - operationId: PublicClinicalConceptsController_getBiomarker
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/biomarker/{id}
+    summary: Get Clinical Concept Biomarker
+  - operationId: PublicClinicalConceptsController_getCoverage
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/coverage/{id}
+    summary: Get Clinical Concept Coverage
+  - operationId: PublicClinicalConceptsController_getDemographic
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/demographic/{id}
+    summary: Get Clinical Concept Demographic
+  - operationId: PublicClinicalConceptsController_getEncounter
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/encounter/{id}
+    summary: Get Clinical Concept Encounter
+  - operationId: PublicClinicalConceptsController_getFamilyHistory
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/family_history/{id}
+    summary: Get Clinical Concept Family History
+  - operationId: PublicClinicalConceptsController_getImaging
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/imaging/{id}
+    summary: Get Clinical Concept Imaging
+  - operationId: PublicClinicalConceptsController_getLab
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/lab/{id}
+    summary: Get Clinical Concept Lab
+  - operationId: PublicClinicalConceptsController_getSocialHistory
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/social_history/{id}
+    summary: Get Clinical Concept Social History
+  - operationId: PublicClinicalConceptsController_getSurvey
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/survey/{id}
+    summary: Get Clinical Concept Survey
+  - operationId: PublicClinicalConceptsController_getRadiation
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/radiation/{id}
+    summary: Get Clinical Concept Radiation
+  - operationId: PublicClinicalConceptsController_getVital
+    method: GET
+    path: /api/v1/patient-registry/clinical-concepts/vital/{id}
+    summary: Get Clinical Concept Vital
+  - operationId: PublicProjectController_getAll
+    method: GET
+    path: /api/v1/patient-registry/project
+    summary: List Projects
+coverage:
+  openapi_operations: 69
+  published_skills: 6
+  operations_named_by_a_skill: 33
+  operations_named_by_no_skill: 36
+  skill_coverage_pct: 47.8
+  mcp_tools_introspected: 0
+  mcp_tools_introspected_reason: endpoint auth-gated (401 on anonymous tools/list)

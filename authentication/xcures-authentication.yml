@@ -1,0 +1,106 @@
+generated: '2026-09-04'
+method: searched
+source: >-
+  https://docs.xcures.com/api-introduction#authentication (docs) enriched over a derive from
+  openapi/xcures-patient-registry-api-openapi.yml securitySchemes
+docs: https://docs.xcures.com/api-introduction#authentication
+api: xCures Public API
+summary:
+  types:
+    - http
+    - oauth2
+  note: >-
+    The spec declares only one securityScheme (http bearer, JWT), but the docs and the spec's own
+    info.description document the full OAuth 2.0 client-credentials exchange that mints that bearer.
+    Recorded as both: an implementer needs the grant, not just the header.
+schemes:
+  - name: bearer
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
+    header: Authorization
+    applied_to: 68 of 69 operations
+    exempt: [PublicOAuthController_token]
+    declared_at_document_level: false
+    sources:
+      - openapi/xcures-patient-registry-api-openapi.yml
+  - name: oauth2-client-credentials
+    type: oauth2
+    flow: clientCredentials
+    token_url: https://partner.xcures.com/oauth/token
+    operationId: PublicOAuthController_token
+    request_media_type: application/json
+    request_fields:
+      - client_id
+      - client_secret
+      - grant_type (value: client_credentials)
+    response_fields:
+      - access_token
+      - token_type
+    scopes: {}
+    scopes_note: >-
+      NO SCOPES ARE PUBLISHED. The token response carries no scope, the token request accepts no scope
+      parameter, and no scope reference page exists. Authorization is not scope-based here: it is the
+      combination of (a) which projects a credential was granted in the portal and (b) the permissions
+      selected on that credential at creation time, enforced through the ProjectId header. That is why no
+      scopes/ artifact is emitted for this provider — an empty scope file would misrepresent the model.
+    declared_in_spec: false
+    declared_in_docs: true
+    sources:
+      - https://docs.xcures.com/api-introduction#obtaining-a-bearer-token
+      - openapi/xcures-patient-registry-api-openapi.yml (info.description)
+project_context:
+  header: ProjectId
+  required: true
+  required_on: 67 of 69 operations
+  exempt:
+    - PublicOAuthController_token
+    - PublicProjectController_getAll
+  value: UUID of a project the credential has permission to access
+  discovery: GET /api/v1/patient-registry/project
+  failure_mode: >-
+    A missing or unauthorized ProjectId returns 401 ("Invalid API key or ProjectId"), not 400 or 403. This
+    is the most common integration mistake and the docs call it out first in the error table.
+credential_lifecycle:
+  issuance: >-
+    Initial portal credentials come from a Customer Success Manager. API keys are then self-managed:
+    Administration > API Keys > + Add, naming the key, selecting the Projects it can reach and the
+    permissions it carries. The client_id and client_secret are shown once.
+  self_service: true
+  since: '2025-12-04'
+  deactivation: toggle the ACTIVE switch on the credential (confirmation modal)
+  rotation: >-
+    Supported and documented as expected practice — open the credential and use Rotate at the bottom of
+    the page; new credentials are displayed on completion. xCures publishes a short rationale for
+    rotation in the docs.
+  legacy_cutover:
+    announced: '2025-12-04'
+    effective: '2026-01-31'
+    detail: >-
+      All credentials created before December 2025 were deactivated after 2026-01-31 and had to be
+      recreated with the self-service tool; they only ever worked against the previous (now undocumented)
+      OAuth endpoint.
+  handling_guidance_published: >-
+    "Your client_id and client_secret are privileged. Do not share publicly, expose in your code
+    repository, or include in client-side code. This is extremely sensitive, given it may give access to
+    your organization's PHI."
+token:
+  format: JWT
+  lifetime_published: false
+  refresh: >-
+    None. The client-credentials grant returns no refresh_token; re-run the exchange. The docs call the
+    result a "temporary access token" but publish no TTL.
+  revocation_endpoint: none published
+  introspection_endpoint: none published
+discovery_documents:
+  openid_configuration: none (404 on every host)
+  oauth_authorization_server: >-
+    Not served for the Public API. The document at
+    https://docs.xcures.com/.well-known/oauth-authorization-server belongs to the DOCS PORTAL / MCP login
+    (issuer https://auth.cloud.redocly.com) — see well-known/xcures-well-known.yml. Do not mistake it for
+    the API's OAuth server.
+gaps:
+  - No published token lifetime, so a client cannot pre-emptively refresh.
+  - No scopes and no scope reference, so least-privilege is expressed only in the portal UI.
+  - No mTLS, no signed requests, no IP allowlisting documented for a PHI-bearing API.
+  - No discovery document for the Public API's own authorization server.

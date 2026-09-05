@@ -1,0 +1,114 @@
+generated: '2026-09-04'
+method: searched
+source: >-
+  https://docs.xcures.com/api-introduction#api-error-handling (error table) derived against
+  openapi/xcures-patient-registry-api-openapi.yml 4xx/5xx responses
+api: xCures Public API
+format: problem-details-shaped
+media_type: application/json
+rfc9457_conformant: false
+envelope:
+  schema: ProblemDetails
+  fields:
+    - name: status
+      type: number
+      note: HTTP status repeated in the body
+    - name: title
+      type: string
+      note: short human-readable summary, e.g. "Conflict"
+    - name: detail
+      type: string
+      note: explanation specific to this occurrence
+  missing_vs_rfc9457: [type, instance]
+  note: >-
+    No response in the spec declares application/problem+json. Most 4xx responses are declared with a bare
+    status code and NO content schema at all — only the v2 subject-create 409 carries a ProblemDetails
+    example. An agent cannot rely on a machine-readable error body across the surface.
+problem_types:
+  - status: 400
+    title: Bad Request
+    detail: The request is not acceptable, likely due to a missing required parameter.
+    declared_on_operations: 69
+    remediation: >-
+      Check required body fields (subject create needs id, firstName, lastName; document create needs
+      subjectId, fileName, contentType; query create needs subjectId) and required query parameters.
+    source: https://docs.xcures.com/api-introduction#api-error-handling
+  - status: 401
+    title: Unauthorized
+    detail: Invalid API key or ProjectId. Verify your Bearer token and ProjectId are correct.
+    declared_on_operations: 69
+    remediation: >-
+      Re-run the client-credentials exchange at POST /oauth/token, and confirm the ProjectId header is a
+      UUID returned by GET /api/v1/patient-registry/project. NOTE the unusual mapping: a wrong ProjectId
+      is a 401 here, not a 403 or 400.
+    source: https://docs.xcures.com/api-introduction#api-error-handling
+  - status: 403
+    title: Forbidden
+    detail: >-
+      You're authenticated, but you don't have permission to access this resource. Check with your
+      Customer Success Manager.
+    declared_on_operations: 68
+    remediation: >-
+      Permissions are assigned per credential per project in the portal Administration UI. One 403 has a
+      documented product-specific cause: on
+      PUT /document/{documentId}/reciprocity a 403 "usually means Reciprocity is not yet enabled on the
+      project" — Requester Information and Encounter Information must be configured first.
+    source: https://docs.xcures.com/api-introduction#reciprocity-workflow
+  - status: 404
+    title: Not Found
+    detail: The addressed resource does not exist in this project.
+    declared_on_operations: 22
+    remediation: Confirm the id and that the ProjectId header scopes to the project that owns the resource.
+    source: openapi/xcures-patient-registry-api-openapi.yml
+  - status: 409
+    title: Conflict
+    detail: '<details about the conflict>'
+    declared_on_operations: 2
+    operations:
+      - PublicSubjectController_create
+      - PublicSubjectControllerV2_create
+    remediation: >-
+      The client-supplied subject `id` UUID already exists. This is the API's only replay-protection
+      signal — treat it as "already created" and continue rather than retrying with a new id.
+    source: openapi/xcures-patient-registry-api-openapi.yml
+    example:
+      title: Conflict
+      status: 409
+      detail: <details about the conflict>
+  - status: 429
+    title: Too Many Requests
+    detail: Too many requests are hitting the API in a short duration.
+    declared_on_operations: 67
+    remediation: >-
+      Back off. The bulk-patient-onboarding skill states the practical ceiling: keep no more than 10-15
+      requests in flight; "beyond that, expect 429 responses; back off rather than increasing concurrency
+      further." No Retry-After header is published.
+    source: https://docs.xcures.com/.well-known/agent-skills/bulk-patient-onboarding/SKILL.md
+  - status: 500
+    title: Internal Server Error
+    detail: An error occurred on the xCures side. Reach out to xCures Support if the issue persists.
+    declared_on_operations: 1
+    remediation: Retry with backoff; contact help@xcures.com if persistent.
+    source: https://docs.xcures.com/api-introduction#api-error-handling
+  - status: 503
+    title: Service Unavailable
+    detail: Declared on one operation in the spec; not described in the docs error table.
+    declared_on_operations: 1
+    source: openapi/xcures-patient-registry-api-openapi.yml
+domain_error_states:
+  note: >-
+    Not HTTP errors, but the failure states an agent actually has to handle. These are enum values on the
+    async surfaces and are where a workflow goes wrong far more often than a 4xx does.
+  query_status:
+    field: Query.ccdaStatus / Query.fhirStatus
+    values: [delayed, initiated, pending, inProgress, completed, exhausted, error]
+    terminal: [completed, exhausted, error]
+    handling: >-
+      `error` means dispatch a fresh query (POST /query) and poll again. `exhausted` is terminal with no
+      documented remedy. A `completed` query with totalCount 0 on Search Documents is the documented
+      signal to re-check patient demographics and requery.
+  batch_create:
+    field: CreateSubjectResult.failureReason
+    handling: >-
+      The v1 batch subject create returns an array of results in input order; a per-entry failureReason
+      isolates that subject's failure. Record it for retry; do not abandon the chunk.

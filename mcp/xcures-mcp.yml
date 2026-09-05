@@ -1,0 +1,60 @@
+generated: '2026-09-04'
+method: probed
+source: >-
+  https://docs.xcures.com/.well-known/agent-card.json (capabilities.extensions) and
+  https://docs.xcures.com/app-data.json (mcpData), confirmed by a live POST to the endpoint
+name: xCures Docs MCP Server
+description: >-
+  A remote MCP server xCures runs on its own documentation host as part of the Redocly Realm API Hub. It
+  exposes the documentation corpus and the six published Agent Skills as MCP tools. It is a
+  documentation/discovery server — it is NOT a wrapper over the xCures Public API's 69 REST operations;
+  patient, query, document, FHIR and checklist calls still go to https://partner.xcures.com over REST.
+deployment:
+  mode: remote
+  endpoint: https://docs.xcures.com/mcp
+  auth: oauth
+  verified: probed
+discovery:
+  declared_in:
+    - https://docs.xcures.com/.well-known/agent-card.json
+    - https://docs.xcures.com/app-data.json
+  app_data_mcpData:
+    docs:
+      enabled: true
+      name: Docs MCP server
+probe:
+  method: POST
+  url: https://docs.xcures.com/mcp
+  request: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+  headers_sent:
+    Accept: application/json, text/event-stream
+    Content-Type: application/json
+  http_status: 401
+  body: '{"error":"unauthorized","message":"Authentication required"}'
+  www_authenticate: >-
+    Bearer resource_metadata="https://docs.xcures.com/.well-known/oauth-protected-resource/mcp"
+  initialize_status: 401
+  fetched: '2026-09-04'
+tools:
+  status: auth-gated
+  note: >-
+    tools/list and initialize both return 401 to an anonymous client, so the live tool set and its
+    inputSchema objects could not be introspected. No tool list is asserted here. The agent card names
+    the server's purpose ("documentation tools and skills") and the six skills it fronts are published
+    unauthenticated at /.well-known/agent-skills/ and are captured verbatim under skills/. Recovering
+    the real inputSchema objects requires an authenticated introspection with a Redocly portal login.
+authorization:
+  protected_resource_metadata: https://docs.xcures.com/.well-known/oauth-protected-resource/mcp
+  authorization_server_metadata: https://docs.xcures.com/.well-known/oauth-authorization-server
+  issuer: https://auth.cloud.redocly.com
+  authorization_endpoint: https://docs.xcures.com/_mcp/oauth2/auth
+  token_endpoint: https://docs.xcures.com/_mcp/oauth2/token-portal
+  registration_endpoint: https://docs.xcures.com/_mcp/register
+  dynamic_client_registration: true
+  scopes_supported: [openid, profile, email, offline_access]
+  code_challenge_methods_supported: [S256]
+  grant_types_supported: [authorization_code, refresh_token]
+  rfc:
+    - RFC 8414 (authorization server metadata)
+    - RFC 9728 (protected resource metadata)
+    - RFC 7636 (PKCE, S256)
