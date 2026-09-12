@@ -1,0 +1,14 @@
+{
+  "repo": "xcures",
+  "feeds": [
+    {
+      "source": "https://docs.xcures.com/support",
+      "feed_url": "https://docs.xcures.com/support",
+      "title": "",
+      "saved": 0,
+      "method": "none"
+    }
+  ],
+  "post_count": 0,
+  "fetched": "2026-09-06T19:17:18Z"
+}
