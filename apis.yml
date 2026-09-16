@@ -28,7 +28,7 @@ tags:
   - Interoperability
   - FHIR
   - Oncology
-  - Real World Data
+  - Real-World Data
   - Clinical Data
   - Artificial Intelligence
   - TEFCA
@@ -177,6 +177,8 @@ common:
     url: lifecycle/xcures-lifecycle.yml
   - type: Examples
     url: examples/_index.yml
+  - type: Contact
+    url: mailto:help@xcures.com
 x-enrichment:
   date: '2026-09-04'
   status: enriched
