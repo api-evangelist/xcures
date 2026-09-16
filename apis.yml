@@ -52,57 +52,363 @@ tags_raw:
   - hitrust
   - hipaa
 apis:
-  - name: xCures Public API
-    description: >-
-      REST API for the xCures Clinical Clarity Engine. Register patients (Subjects), dispatch and poll queries against
-      Carequality/TEFCA health information networks, retrieve and publish clinical documents (including reciprocity
-      back to the network), read normalized FHIR R4 resources and a FHIR bulk export, search fifteen Clinical Concepts
-      domains (conditions, medications, labs, biomarkers, imaging, procedures, allergies, vitals, encounters,
-      demographics, coverage, family history, social history, surveys, radiation), evaluate AI Checklists, and fetch
-      AI-generated subject summaries. OAuth 2.0 client-credentials bearer auth with a required ProjectId header on
-      nearly every operation.
-    humanURL: https://docs.xcures.com/apis/current
-    baseURL: https://partner.xcures.com
-    image: https://xcures.com/wp-content/uploads/2026/06/default-image-sharing.png
-    tags:
-      - Health
-      - Healthcare
-      - Medical Records
-      - Interoperability
-      - FHIR
-      - Clinical Data
-      - Patient Data
-    properties:
-      - type: OpenAPI
-        url: openapi/xcures-patient-registry-api-openapi.yml
-      - type: Documentation
-        url: https://docs.xcures.com/api-introduction
-      - type: APIReference
-        url: https://docs.xcures.com/apis/current
-      - type: GettingStarted
-        url: https://docs.xcures.com/api-introduction
-      - type: Authentication
-        url: authentication/xcures-authentication.yml
-      - type: Postman
-        url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
-      - type: ChangeLog
-        url: https://docs.xcures.com/changelog
-      - type: Webhooks
-        url: asyncapi/xcures-application-webhooks.yml
-      - type: ErrorCatalog
-        url: errors/xcures-problem-types.yml
-      - type: RateLimits
-        url: rate-limits/xcures-rate-limits.yml
-      - type: DataModel
-        url: data-model/xcures-data-model.yml
-      - type: Overlay
-        url: overlays/xcures-patient-registry-api-overlay.yaml
+- aid: xcures:xcures-application-api
+  name: xCures Application API
+  description: >-
+    Account creation (e.g., identity proofing, eConsent) that is required for a patient to progress on
+    the xCures Platform.
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - Application
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-application-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-checklist-api
+  name: xCures Checklist API
+  description: >-
+    AI-powered feature leveraging xCures’ targeted data extraction/processing to populate validated, customizable
+    question/answer-style items. Responses can be highly flexible and every item returns a justification,
+    supporting documents, and structured data to guide decisions in real time.
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - Checklist
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-checklist-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-clinical-concepts-api
+  name: xCures Clinical Concepts API
+  description: >-
+    Clinical concepts is a proprietary xCures higher-level, flattened, filtered, opinionated view of medical
+    record information, structured around FHIR guidelines.
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - Clinical Concepts
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-clinical-concepts-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-document-api
+  name: xCures Document API
+  description: Patient records retrieved by the xCures platform and/or loaded by platform users.
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - Document
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-document-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-fhir-api
+  name: xCures FHIR API
+  description: >-
+    **F**ast **H**ealthcare **I**nteroperability **R**esource is an international data model specification
+    developed by HL7 International to enable healthcare data exchange and interoperability between different
+    systems.
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - FHIR
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-fhir-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-project-api
+  name: xCures Project API
+  description: >-
+    A configured workspace on the xCures Platform. Use this endpoint to discover the projectId value(s)
+    required by other API calls, without needing to log into the portal.
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - Project
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-project-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-query-api
+  name: xCures Query API
+  description: >-
+    A specified, approved request for patient records across the network (e.g., via Carequality/TEFCA
+    to support treatment activities, via TEFCA for IAS queries) with an associated status (e.g., “completed”).
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - Query
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-query-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-reciprocity-template-api
+  name: xCures Reciprocity Template API
+  description: >-
+    Reciprocity or "Responder" workflows refer to the process of sharing clinical documentation housed
+    within your system with other organizations/providers, when participating in health data exchange
+    networks (e.g., Carequality, TEFCA).
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - Reciprocity Template
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-reciprocity-template-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-subject-api
+  name: xCures Subject API
+  description: An individual patient created on the xCures Platform.
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - Subject
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-subject-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-summary-api
+  name: xCures Summary API
+  description: The AI-generated summary of a patient’s overall records and condition(s).
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - Summary
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-summary-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
+- aid: xcures:xcures-o-auth-api
+  name: xCures O Auth API
+  description: >-
+    All API requests to xCures must provide an access token, retrieved via the standard OAuth authorization
+    flow below.
+  humanURL: https://docs.xcures.com/apis/current
+  baseURL: https://partner.xcures.com
+  tags:
+  - O Auth
+  properties:
+  - type: OpenAPI
+    url: openapi/xcures-o-auth-api-openapi.yml
+  - type: Documentation
+    url: https://docs.xcures.com/api-introduction
+  - type: APIReference
+    url: https://docs.xcures.com/apis/current
+  - type: GettingStarted
+    url: https://docs.xcures.com/api-introduction
+  - type: Authentication
+    url: authentication/xcures-authentication.yml
+  - type: Postman
+    url: https://docs.xcures.com/downloads/xCures_SDK_Workflows.postman_collection.json
+  - type: ChangeLog
+    url: https://docs.xcures.com/changelog
+  - type: Webhooks
+    url: asyncapi/xcures-application-webhooks.yml
+  - type: ErrorCatalog
+    url: errors/xcures-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/xcures-rate-limits.yml
+  - type: DataModel
+    url: data-model/xcures-data-model.yml
 maintainers:
   - FN: Kin Lane
     email: kin@apievangelist.com
   - FN: APIs.json
     email: info@apis.io
 common:
+  - type: Overlay
+    url: overlays/xcures-patient-registry-api-overlay.yaml
   - type: Website
     url: https://xcures.com/
   - type: DeveloperPortal
