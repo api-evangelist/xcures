@@ -369,7 +369,7 @@ apis:
     url: rate-limits/xcures-rate-limits.yml
   - type: DataModel
     url: data-model/xcures-data-model.yml
-- aid: xcures:xcures-o-auth-api
+- aid: xcures:xcures-oauth-api
   name: xCures O Auth API
   description: >-
     All API requests to xCures must provide an access token, retrieved via the standard OAuth authorization
@@ -377,10 +377,10 @@ apis:
   humanURL: https://docs.xcures.com/apis/current
   baseURL: https://partner.xcures.com
   tags:
-  - O Auth
+  - OAuth
   properties:
   - type: OpenAPI
-    url: openapi/xcures-o-auth-api-openapi.yml
+    url: openapi/xcures-oauth-api-openapi.yml
   - type: Documentation
     url: https://docs.xcures.com/api-introduction
   - type: APIReference
