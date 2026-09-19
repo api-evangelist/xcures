@@ -155,6 +155,8 @@ apis:
   humanURL: https://docs.xcures.com/apis/current
   baseURL: https://partner.xcures.com
   tags:
+  - Documents
+  tags_raw:
   - Document
   properties:
   - type: OpenAPI
@@ -377,6 +379,8 @@ apis:
   humanURL: https://docs.xcures.com/apis/current
   baseURL: https://partner.xcures.com
   tags:
+  - Authentication
+  tags_raw:
   - OAuth
   properties:
   - type: OpenAPI
