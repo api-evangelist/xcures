@@ -1,0 +1,413 @@
+openapi: 3.2.0
+info:
+  title: xCures Application API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: Application
+  description: Account creation (e.g., identity proofing, eConsent) that is required for a patient to progress on the xCures Platform.
+paths:
+  /api/v1/patient-registry/application/{id}:
+    get:
+      operationId: PublicApplicationController_get
+      summary: Get Application
+      description: Get a specific application by ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        description: The ID of the application to retrieve.
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Application
+      security:
+      - bearer: []
+  /api/v1/patient-registry/application:
+    post:
+      operationId: PublicApplicationController_create
+      summary: Create Application
+      description: Create a new application. The application will be created in the system and an email will be sent to the applicant requesting consent.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApplication'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateApplicationResponse'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Application
+      security:
+      - bearer: []
+  /api/v1/patient-registry/application/{id}/resend-verification:
+    post:
+      operationId: PublicApplicationController_resendVerification
+      summary: Resend Application Invite
+      description: Resends an email to the applicant requesting consent. Also updates the webhooks for the application.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationWebhooks'
+      responses:
+        '201':
+          description: ''
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Application
+      security:
+      - bearer: []
+components:
+  schemas:
+    CreateApplicationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: c8ec1d54-a85c-411f-aa12-fd3a7f2480f4
+        created:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+        updated:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+        firstName:
+          type: string
+          example: David
+        middleName:
+          type: string
+          example: Quincy
+          description: Full middle name or a bare initial; omit if the applicant has none.
+        lastName:
+          type: string
+          example: Mann
+        birthDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        addressLine1:
+          type: string
+          example: 123 Main St.
+        addressLine2:
+          type: string
+          example: Apt 4B
+        addressCity:
+          type: string
+          example: Minneapolis
+        addressState:
+          type: string
+          format: XX
+          example: MN
+          description: Two letter state code
+        addressPostalCode:
+          type: string
+          maxLength: 10
+          example: '55401'
+        sexAtBirth:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+        emailAddress:
+          type: string
+          format: email
+          example: david.mann@example.com
+        phoneNumber:
+          type: string
+          example: 123-456-7890
+        cohortId:
+          type: string
+          format: uuid
+          example: f46c52af-820b-4169-82af-b740b54d8bb5
+        cohortName:
+          type: string
+          example: Cohort A
+        consentAccepted:
+          type: boolean
+        onConsentWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when an applicant accepts or denies consent.
+          example: https://example.com/webhooks/consent
+        onIdentityValidationWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when there's a result for an applicant's identity validation.
+          example: https://example.com/webhooks/identity-validation
+        onQueryResultWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when there's a result for an applicant's EHR query.
+          example: https://example.com/webhooks/ehr-query
+      required:
+      - id
+      - created
+      - updated
+      - firstName
+      - lastName
+      - birthDate
+      - addressPostalCode
+      - sexAtBirth
+      - emailAddress
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: c8ec1d54-a85c-411f-aa12-fd3a7f2480f4
+        created:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+        updated:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+        firstName:
+          type: string
+          example: David
+        middleName:
+          type: string
+          example: Quincy
+          description: Full middle name or a bare initial; omit if the applicant has none.
+        lastName:
+          type: string
+          example: Mann
+        birthDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        addressLine1:
+          type: string
+          example: 123 Main St.
+        addressLine2:
+          type: string
+          example: Apt 4B
+        addressCity:
+          type: string
+          example: Minneapolis
+        addressState:
+          type: string
+          format: XX
+          example: MN
+          description: Two letter state code
+        addressPostalCode:
+          type: string
+          maxLength: 10
+          example: '55401'
+        sexAtBirth:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+        emailAddress:
+          type: string
+          format: email
+          example: david.mann@example.com
+        phoneNumber:
+          type: string
+          example: 123-456-7890
+        cohortId:
+          type: string
+          format: uuid
+          example: f46c52af-820b-4169-82af-b740b54d8bb5
+        cohortName:
+          type: string
+          example: Cohort A
+        subjectId:
+          type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        consentAccepted:
+          type: boolean
+        onConsentWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when an applicant accepts or denies consent.
+          example: https://example.com/webhooks/consent
+        onIdentityValidationWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when there's a result for an applicant's identity validation.
+          example: https://example.com/webhooks/identity-validation
+        onQueryResultWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when there's a result for an applicant's EHR query.
+          example: https://example.com/webhooks/ehr-query
+      required:
+      - id
+      - created
+      - updated
+      - firstName
+      - lastName
+      - birthDate
+      - addressPostalCode
+      - sexAtBirth
+      - emailAddress
+    ApplicationWebhooks:
+      type: object
+      properties:
+        onConsentWebhookUrl:
+          type: string
+        onIdentityValidationWebhookUrl:
+          type: string
+        onQueryResultWebhookUrl:
+          type: string
+    CreateApplication:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: c8ec1d54-a85c-411f-aa12-fd3a7f2480f4
+        firstName:
+          type: string
+          example: David
+        middleName:
+          type: string
+          example: Quincy
+          description: Full middle name or a bare initial; omit if the applicant has none.
+        lastName:
+          type: string
+          example: Mann
+        birthDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        addressLine1:
+          type: string
+          example: 123 Main St.
+        addressLine2:
+          type: string
+          example: Apt 4B
+        addressCity:
+          type: string
+          example: Minneapolis
+        addressState:
+          type: string
+          format: XX
+          example: MN
+          description: Two letter state code
+        addressPostalCode:
+          type: string
+          maxLength: 10
+          example: '55401'
+        sexAtBirth:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+        emailAddress:
+          type: string
+          format: email
+          example: david.mann@example.com
+        phoneNumber:
+          type: string
+          example: 123-456-7890
+        cohortId:
+          type: string
+          format: uuid
+          example: f46c52af-820b-4169-82af-b740b54d8bb5
+        onConsentWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when an applicant accepts or denies consent.
+          example: https://example.com/webhooks/consent
+        onIdentityValidationWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when there's a result for an applicant's identity validation.
+          example: https://example.com/webhooks/identity-validation
+        onQueryResultWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when there's a result for an applicant's EHR query.
+          example: https://example.com/webhooks/ehr-query
+      required:
+      - id
+      - firstName
+      - lastName
+      - birthDate
+      - addressPostalCode
+      - sexAtBirth
+      - emailAddress
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http

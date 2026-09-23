@@ -1,0 +1,74 @@
+openapi: 3.2.0
+info:
+  title: xCures Project API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: Project
+  description: A configured workspace on the xCures Platform. Use this endpoint to discover the projectId value(s) required by other API calls, without needing to log into the portal.
+paths:
+  /api/v1/patient-registry/project:
+    get:
+      operationId: PublicProjectController_getAll
+      summary: List Projects
+      description: Returns the projects your credentials can access, including each projectId. No ProjectId header is required — use this to discover the projectId values needed for other API calls.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Project
+      security:
+      - bearer: []
+components:
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+        name:
+          type: string
+          example: My Project
+        created:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+        updated:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+      required:
+      - id
+      - name
+      - created
+      - updated
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http

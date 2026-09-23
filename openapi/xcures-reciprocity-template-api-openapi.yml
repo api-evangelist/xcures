@@ -1,0 +1,107 @@
+openapi: 3.2.0
+info:
+  title: xCures Reciprocity Template API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: Reciprocity Template
+  description: Reciprocity or "Responder" workflows refer to the process of sharing clinical documentation housed within your system with other organizations/providers, when participating in health data exchange networks (e.g., Carequality, TEFCA).
+paths:
+  /api/v1/patient-registry/reciprocity-template:
+    get:
+      operationId: PublicReciprocityTemplateController_list
+      summary: List Reciprocity Templates
+      description: Get a list of all reciprocity document templates available under this project.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublishDocumentTemplateDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Reciprocity Template
+      security:
+      - bearer: []
+components:
+  schemas:
+    PublishDocumentTemplateDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: c8ffe813-1e61-42aa-a26f-a0e9ab6ed1fd
+        projectId:
+          type: string
+        name:
+          type: string
+        author:
+          type: string
+        title:
+          type: string
+        displayName:
+          type: string
+        loincCode:
+          type: string
+        created:
+          format: date-time
+          type: string
+        updated:
+          format: date-time
+          type: string
+        providerOrganizationId:
+          type: string
+        providerOrganizationName:
+          type: string
+        providerAddressLine1:
+          type: string
+        providerAddressLine2:
+          type: string
+        providerAddressCity:
+          type: string
+        providerAddressState:
+          type: string
+        providerAddressPostalCode:
+          type: string
+        providerPhoneNumber:
+          type: string
+      required:
+      - id
+      - projectId
+      - name
+      - author
+      - title
+      - displayName
+      - loincCode
+      - created
+      - updated
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http

@@ -1,0 +1,415 @@
+openapi: 3.2.0
+info:
+  title: xCures Query API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: Query
+  description: A specified, approved request for patient records across the network (e.g., via Carequality/TEFCA to support treatment activities, via TEFCA for IAS queries) with an associated status (e.g., “completed”).
+paths:
+  /api/v1/patient-registry/query:
+    get:
+      operationId: PublicQueryController_search
+      summary: Search Queries
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field name to sort by
+        schema:
+          default: created
+          enum:
+          - created
+          - ccdaStatus
+          - externalSystem
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: false
+        in: query
+        schema:
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          type: string
+      - name: status
+        required: false
+        in: query
+        description: Filter applies specifically to property ccdaStatus
+        schema:
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+          type: string
+      - name: createdFrom
+        required: false
+        in: query
+        readOnly: true
+        description: Include queries created on or after this date (inclusive)
+        schema:
+          format: ISO 8601
+          example: '2025-05-26T23:30:40.912Z'
+          type: string
+      - name: createdTo
+        required: false
+        in: query
+        readOnly: true
+        description: Include queries created before this date (exclusive)
+        schema:
+          format: ISO 8601
+          example: '2025-05-26T23:30:40.912Z'
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryPaginationResult'
+      tags:
+      - Query
+      security:
+      - bearer: []
+    post:
+      operationId: PublicQueryController_create
+      summary: Create Query
+      description: Create a new query by providing the necessary details. The query will be stored and can be used for further operations.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      requestBody:
+        required: true
+        description: The data required to create a new query.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQueryDto'
+            examples:
+              example1:
+                summary: Example Query Creation
+                value:
+                  subjectId: 1782b464-ab03-4c03-9810-83d42b86e587
+                  organizationIds:
+                  - 2.16.840.1.113883.3.3126.2.3.32103.16
+      responses:
+        '201':
+          description: The query was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryDto'
+        '400':
+          description: Bad Request. The input data is invalid.
+        '401':
+          description: Unauthorized. The user is not authenticated.
+        '403':
+          description: Forbidden. The user does not have permission to create a query.
+        '429':
+          description: Too Many Requests. The user has exceeded the rate limit.
+      tags:
+      - Query
+      security:
+      - bearer: []
+  /api/v1/patient-registry/query/{id}:
+    get:
+      operationId: PublicQueryController_get
+      summary: Get Query
+      description: Get a specific query by ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetQueryResponse'
+      tags:
+      - Query
+      security:
+      - bearer: []
+components:
+  schemas:
+    QueryPaginationResult:
+      type: object
+      properties:
+        pageNumber:
+          type: number
+          default: 1
+          description: Page number to retrieve (1-based index)
+        pageSize:
+          type: number
+          default: 50
+          description: Number of items per page
+        sortField:
+          type: string
+          default: created
+          description: Field name to sort by
+        sortIsDescending:
+          type: boolean
+          default: false
+          description: Whether to sort in descending order
+        totalCount:
+          type: number
+          description: Total number of items matching the query
+        results:
+          description: List of results for the current page
+          type: array
+          items:
+            $ref: '#/components/schemas/Query'
+      required:
+      - totalCount
+      - results
+    QueryAttempt:
+      type: object
+      properties:
+        queryId:
+          type: string
+        created:
+          format: date-time
+          type: string
+        fhirResult:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        ccdaResult:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        message:
+          type: string
+      required:
+      - queryId
+      - created
+    GetQueryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        subjectId:
+          type: string
+        created:
+          format: date-time
+          type: string
+        userId:
+          type: string
+        fhirStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        ccdaStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+      required:
+      - id
+      - subjectId
+      - created
+      - userId
+    CreateQueryDto:
+      type: object
+      properties:
+        subjectId:
+          type: string
+          description: The ID of the subject for whom the query is being created.
+          example: 1782b464-ab03-4c03-9810-83d42b86e587
+        organizationIds:
+          description: A list of organization IDs associated with the query.
+          example:
+          - 2.16.840.1.113883.3.3126.2.3.32103.16
+          type: array
+          items:
+            type: string
+      required:
+      - subjectId
+    Query:
+      type: object
+      properties:
+        id:
+          type: string
+        subjectId:
+          type: string
+        created:
+          format: date-time
+          type: string
+        userId:
+          type: string
+        fhirStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        ccdaStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        queryAttempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueryAttempt'
+      required:
+      - id
+      - subjectId
+      - created
+      - userId
+    QueryDto:
+      type: object
+      properties:
+        id:
+          type: string
+        subjectId:
+          type: string
+        created:
+          format: date-time
+          type: string
+        fhirStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        ccdaStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        userId:
+          type: string
+        externalPatientId:
+          type: string
+        externalQueryId:
+          type: string
+        queryAttempts:
+          type: array
+          items:
+            type: string
+      required:
+      - id
+      - subjectId
+      - created
+      - fhirStatus
+      - ccdaStatus
+      - userId
+      - externalPatientId
+      - externalQueryId
+      - queryAttempts
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http

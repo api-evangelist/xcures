@@ -1,0 +1,43 @@
+{
+  "provider": "xcures",
+  "sources": [
+    "_original/xcures-api-current.json"
+  ],
+  "outputs": [
+    "xcures-application-api-openapi.yml",
+    "xcures-checklist-api-openapi.yml",
+    "xcures-clinical-concepts-api-openapi.yml",
+    "xcures-document-api-openapi.yml",
+    "xcures-fhir-api-openapi.yml",
+    "xcures-oauth-api-openapi.yml",
+    "xcures-project-api-openapi.yml",
+    "xcures-query-api-openapi.yml",
+    "xcures-reciprocity-template-api-openapi.yml",
+    "xcures-subject-api-openapi.yml",
+    "xcures-summary-api-openapi.yml"
+  ],
+  "archived": [
+    "deleted 1 superseded output(s) from the previous generation"
+  ],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "xcures-api-current.json: upgraded openapi 3.0.0 -> OpenAPI 3.2.0",
+    "superseded outputs removed: xcures-o-auth-api-openapi.yml",
+    "apis.yml register: written (+1 apis, 11 total)"
+  ],
+  "skipped": [
+    "xcures-application-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-checklist-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-clinical-concepts-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-document-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-fhir-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-o-auth-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-project-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-query-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-reciprocity-template-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-subject-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "xcures-summary-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}

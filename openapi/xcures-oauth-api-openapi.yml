@@ -1,0 +1,83 @@
+openapi: 3.2.0
+info:
+  title: xCures O Auth API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: OAuth
+  description: All API requests to xCures must provide an access token, retrieved via the standard OAuth authorization flow below.
+paths:
+  /oauth/token:
+    post:
+      operationId: PublicOAuthController_token
+      summary: Get Token
+      description: Obtain an access token that is authorized to make API calls.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OAuthTokenRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthTokenResponseDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - OAuth
+components:
+  schemas:
+    OAuthTokenResponseDto:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: The credential used to authenticate API requests.
+        token_type:
+          type: string
+          example: Bearer
+          description: The type of token being issued.
+      required:
+      - access_token
+      - token_type
+    OAuthTokenRequestDto:
+      type: object
+      properties:
+        client_id:
+          type: string
+          format: uuid
+          example: c8ec1d54-a85c-411f-aa12-fd3a7f2480f4
+          description: Your API key's client ID.
+        client_secret:
+          type: string
+          description: Your API key's client secret.
+        grant_type:
+          type: string
+          example: client_credentials
+          enum:
+          - client_credentials
+          description: The OAuth 2.0 grant type.
+      required:
+      - client_id
+      - client_secret
+      - grant_type
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http

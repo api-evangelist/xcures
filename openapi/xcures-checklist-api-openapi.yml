@@ -1,0 +1,361 @@
+openapi: 3.2.0
+info:
+  title: xCures Checklist API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: Checklist
+  description: AI-powered feature leveraging xCures’ targeted data extraction/processing to populate validated, customizable question/answer-style items. Responses can be highly flexible and every item returns a justification, supporting documents, and structured data to guide decisions in real time.
+paths:
+  /api/v1/patient-registry/checklist:
+    get:
+      operationId: PublicChecklistController_list
+      summary: Get Checklists
+      description: Get the set of checklists configured for the project.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: type
+        required: false
+        in: query
+        description: The type of checklist.
+        schema:
+          default: questionnaire
+          enum:
+          - questionnaire
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Checklist'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Checklist
+      security:
+      - bearer: []
+  /api/v1/patient-registry/checklist/{checklistId}/evaluate:
+    post:
+      operationId: PublicChecklistController_evaluate
+      summary: Evaluate Checklist
+      description: Evaluate a checklist for a subject.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: checklistId
+        required: true
+        in: path
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChecklistEvaluationRequest'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChecklistEvaluationResult'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Checklist
+      security:
+      - bearer: []
+  /api/v1/patient-registry/checklist/{checklistId}/item/{checklistItemId}/feedback:
+    post:
+      operationId: PublicChecklistController_submitItemFeedback
+      summary: Submit Checklist Item Feedback
+      description: Submit feedback on a specific checklist item for a subject.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: checklistId
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: checklistItemId
+        required: true
+        in: path
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChecklistItemFeedbackRequest'
+      responses:
+        '200':
+          description: ID of the created feedback record.
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Checklist
+      security:
+      - bearer: []
+components:
+  schemas:
+    ChecklistItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        libraryItemId:
+          type: string
+          description: Checklist library item ID. For `static` type checklists, identifies the library item type. For `questionnaire` type checklists, uniquely identifies the item in the checklist.
+        name:
+          type: string
+          description: Display name of the checklist item.
+        sortOrder:
+          type: number
+          description: Order in which to display this checklist item.
+      required:
+      - id
+      - libraryItemId
+      - name
+      - sortOrder
+    ClinicalConceptDto:
+      type: object
+      properties:
+        clinicalConceptId:
+          type: string
+          description: The ID of the clinical concept.
+        entityType:
+          type: string
+          description: The type of clinical concept.
+      required:
+      - clinicalConceptId
+      - entityType
+    ChecklistItemFeedbackRequest:
+      type: object
+      properties:
+        subjectId:
+          type: string
+          format: uuid
+          description: ID of the subject to submit feedback for.
+        feedbackType:
+          type: string
+          enum:
+          - positive
+          - negative
+          - harmful
+          example: positive
+          description: The type of feedback being submitted.
+        comment:
+          type: string
+          description: Optional comment providing additional context for the feedback. Required when feedbackType is harmful.
+      required:
+      - subjectId
+      - feedbackType
+    Checklist:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Display name of the checklist.
+        sortOrder:
+          type: number
+          description: Order in which the checklist is displayed.
+        items:
+          description: Items in the checklist.
+          type: array
+          items:
+            $ref: '#/components/schemas/ChecklistItem'
+      required:
+      - id
+      - name
+      - sortOrder
+      - items
+    DocumentSectionDto:
+      type: object
+      properties:
+        documentId:
+          type: string
+          description: The ID of the document this section appears in.
+        sectionType:
+          type: string
+          enum:
+          - ccda
+          - page
+          description: The type of document section.
+        section:
+          type: string
+          description: Uniquely identifies this section within the document. For `ccda` sectionTypes, this is the CCDA section code. For `page` sectionTypes, this is the page number.
+        sectionTitle:
+          type: string
+          description: For `ccda` type sections, the title of the section.
+        documentName:
+          type: string
+          description: The name of the document.
+        documentLocation:
+          type: string
+          description: The facility or location associated with this document.
+        documentContentType:
+          type: string
+          description: The document content MIME type.
+        documentDate:
+          format: date-time
+          type: string
+          description: The date associated with the document, when known. May be absent.
+        documentFileSizeBytes:
+          type: number
+          description: The size of the document in bytes.
+      required:
+      - documentId
+      - sectionType
+      - section
+      - documentContentType
+    ChecklistItemEvaluationResult:
+      type: object
+      properties:
+        checklistItem:
+          description: Checklist item that was evaluated.
+          allOf:
+          - $ref: '#/components/schemas/ChecklistItem'
+        checklistItemDefinitionId:
+          type: string
+          format: uuid
+          description: ID of the checklist item definition this answer was produced from. Stable across evaluations of the same item.
+        checklistItemDefinitionVersionId:
+          type: string
+          format: uuid
+          description: ID of the specific checklist item definition version this answer was produced against. Item definitions are versioned, and answers produced by different versions are not directly comparable. Use this to pin an answer to the exact version that generated it.
+        meetsCriteria:
+          type: boolean
+          description: Whether this checklist item's criteria is satisfied, i.e. if the checkbox should be checked.
+        matchingRecords:
+          deprecated: true
+          description: Deprecated in favor of clinicalConcepts. This will be an empty array.
+          type: array
+          items:
+            type: object
+        documentIds:
+          description: IDs of the source documents that are relevant to this checklist item.
+          type: array
+          items:
+            type: string
+        clinicalConcepts:
+          description: Structured clinical records that are relevant to this checklist item.
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalConceptDto'
+        documentSections:
+          description: Document sections that are relevant to this checklist item.
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentSectionDto'
+        result:
+          type: object
+          description: The result of this checklist item's evaluation.
+      required:
+      - checklistItem
+      - meetsCriteria
+      - matchingRecords
+      - documentIds
+      - clinicalConcepts
+      - documentSections
+    ChecklistEvaluationRequest:
+      type: object
+      properties:
+        subjectId:
+          type: string
+          format: uuid
+          description: The ID of the subject to evaluate the checklist for.
+        regenerate:
+          type: boolean
+          description: If true, forces regeneration of the checklist evaluation even if a recent evaluation exists.
+      required:
+      - subjectId
+    ChecklistEvaluationResult:
+      type: object
+      properties:
+        subjectId:
+          type: string
+          format: uuid
+          description: ID of the subject being evaluated.
+        checklistId:
+          type: string
+          format: uuid
+          description: ID of the checklist being evaluated.
+        eligibilitySatisfied:
+          type: boolean
+          description: Whether the checklist's minimum criteria have been met.
+        items:
+          description: Evaluation results of the indvidual checklist items.
+          type: array
+          items:
+            $ref: '#/components/schemas/ChecklistItemEvaluationResult'
+        documentIds:
+          description: IDs of the source documents associated with all of the satisfied checklist items.
+          type: array
+          items:
+            type: string
+      required:
+      - subjectId
+      - checklistId
+      - eligibilitySatisfied
+      - items
+      - documentIds
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http

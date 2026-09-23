@@ -1,0 +1,3181 @@
+openapi: 3.2.0
+info:
+  title: xCures Clinical Concepts API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: Clinical Concepts
+  description: Clinical concepts is a proprietary xCures higher-level, flattened, filtered, opinionated view of medical record information, structured around FHIR guidelines.
+paths:
+  /api/v1/patient-registry/clinical-concepts/condition:
+    get:
+      operationId: PublicClinicalConceptsController_searchConditions
+      summary: Search Clinical Concepts Conditions
+      description: Search for condition clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/condition/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getCondition
+      summary: Get Clinical Concept Condition
+      description: Retrieve a specific condition clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptConditionDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/medication:
+    get:
+      operationId: PublicClinicalConceptsController_searchMedications
+      summary: Search Clinical Concepts Medications
+      description: Search for medication clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/medication/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getMedication
+      summary: Get Clinical Concept Medication
+      description: Retrieve a specific medication clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptMedicationDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/allergy:
+    get:
+      operationId: PublicClinicalConceptsController_searchAllergies
+      summary: Search Clinical Concepts Allergies
+      description: Search for allergy clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/allergy/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getAllergy
+      summary: Get Clinical Concept Allergy
+      description: Retrieve a specific allergy clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptAllergyDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/procedure:
+    get:
+      operationId: PublicClinicalConceptsController_searchProcedures
+      summary: Search Clinical Concepts Procedures
+      description: Search for procedure clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/procedure/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getProcedure
+      summary: Get Clinical Concept Procedure
+      description: Retrieve a specific procedure clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptProcedureDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/biomarker:
+    get:
+      operationId: PublicClinicalConceptsController_searchBiomarkers
+      summary: Search Clinical Concepts Biomarkers
+      description: Search for biomarker clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/biomarker/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getBiomarker
+      summary: Get Clinical Concept Biomarker
+      description: Retrieve a specific biomarker clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptBiomarkerDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/coverage:
+    get:
+      operationId: PublicClinicalConceptsController_searchCoverage
+      summary: Search Clinical Concepts Coverage
+      description: Search for coverage clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/coverage/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getCoverage
+      summary: Get Clinical Concept Coverage
+      description: Retrieve a specific coverage clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptCoverageDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/demographic:
+    get:
+      operationId: PublicClinicalConceptsController_searchDemographics
+      summary: Search Clinical Concepts Demographics
+      description: Search for demographic clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/demographic/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getDemographic
+      summary: Get Clinical Concept Demographic
+      description: Retrieve a specific demographic clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptDemographicDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/encounter:
+    get:
+      operationId: PublicClinicalConceptsController_searchEncounters
+      summary: Search Clinical Concepts Encounters
+      description: Search for encounter clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/encounter/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getEncounter
+      summary: Get Clinical Concept Encounter
+      description: Retrieve a specific encounter clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptEncounterDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/family_history:
+    get:
+      operationId: PublicClinicalConceptsController_searchFamilyHistory
+      summary: Search Clinical Concepts Family History
+      description: Search for family history clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/family_history/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getFamilyHistory
+      summary: Get Clinical Concept Family History
+      description: Retrieve a specific family history clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptFamilyHistoryDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/imaging:
+    get:
+      operationId: PublicClinicalConceptsController_searchImaging
+      summary: Search Clinical Concepts Imaging
+      description: Search for imaging clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/imaging/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getImaging
+      summary: Get Clinical Concept Imaging
+      description: Retrieve a specific imaging clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptImagingDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/lab:
+    get:
+      operationId: PublicClinicalConceptsController_searchLabs
+      summary: Search Clinical Concepts Labs
+      description: Search for lab clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/lab/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getLab
+      summary: Get Clinical Concept Lab
+      description: Retrieve a specific lab clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptLabDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/social_history:
+    get:
+      operationId: PublicClinicalConceptsController_searchSocialHistory
+      summary: Search Clinical Concepts Social History
+      description: Search for social history clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/social_history/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getSocialHistory
+      summary: Get Clinical Concept Social History
+      description: Retrieve a specific social history clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptSocialHistoryDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/survey:
+    get:
+      operationId: PublicClinicalConceptsController_searchSurveys
+      summary: Search Clinical Concepts Surveys
+      description: Search for survey clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/survey/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getSurvey
+      summary: Get Clinical Concept Survey
+      description: Retrieve a specific survey clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptSurveyDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/radiation:
+    get:
+      operationId: PublicClinicalConceptsController_searchRadiation
+      summary: Search Clinical Concepts Radiation
+      description: Search for radiation clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/radiation/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getRadiation
+      summary: Get Clinical Concept Radiation
+      description: Retrieve a specific radiation clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptRadiationDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/vital:
+    get:
+      operationId: PublicClinicalConceptsController_searchVitals
+      summary: Search Clinical Concepts Vitals
+      description: Search for vital clinical concepts associated with a specific subject. Supports filtering by search term, date range, code, and code system. Results are paginated.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field to sort by
+        schema:
+          default: score
+          enum:
+          - date
+          - score
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      - name: dateStart
+        required: false
+        in: query
+        description: Start date for filtering (ISO string)
+        schema:
+          example: '2025-01-01'
+          type: string
+      - name: dateEnd
+        required: false
+        in: query
+        description: End date for filtering (ISO string)
+        schema:
+          example: '2025-12-31'
+          type: string
+      - name: searchTerm
+        required: false
+        in: query
+        description: Search term for filtering
+        schema:
+          example: aspirin
+          type: string
+      - name: searchTermMode
+        required: false
+        in: query
+        description: 'Search mode: lexical (keyword), semantic (vector), or hybrid (RRF blend of both). Defaults to hybrid when a searchTerm is provided.'
+        schema:
+          enum:
+          - lexical
+          - semantic
+          - hybrid
+          type: string
+      - name: code
+        required: false
+        in: query
+        description: Filter by code value
+        schema:
+          example: E11.9
+          type: string
+      - name: codeSystem
+        required: false
+        in: query
+        description: Filter by code system
+        schema:
+          example: http://hl7.org/fhir/sid/icd-10
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResultDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+  /api/v1/patient-registry/clinical-concepts/vital/{id}:
+    get:
+      operationId: PublicClinicalConceptsController_getVital
+      summary: Get Clinical Concept Vital
+      description: Retrieve a specific vital clinical concept associated with a subject by its ID.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: id
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: subjectId
+        required: true
+        in: query
+        description: Subject ID (GUID)
+        schema:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalConceptVitalDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Clinical Concepts
+      security:
+      - bearer: []
+components:
+  schemas:
+    ClinicalConceptMedicationDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the medication record
+        documentIds:
+          description: List of document IDs associated with the medication
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        startDate:
+          format: date-time
+          type: string
+          description: Start date of the medication
+        endDate:
+          format: date-time
+          type: string
+          description: End date of the medication
+        status:
+          type: string
+          description: Status of the medication
+        reason:
+          type: string
+          description: Reason for the medication
+        route:
+          type: string
+          description: Route of administration
+        dose:
+          type: number
+          description: Dose amount
+        doseUnit:
+          type: string
+          description: Dose unit
+        patientInstruction:
+          type: string
+          description: Patient instruction for the medication
+        regimen:
+          type: string
+          description: Regimen for the medication
+        discontinuationReason:
+          type: string
+          description: Reason for discontinuation
+        medicationName:
+          type: string
+          description: Medication name
+        medicationCode:
+          type: string
+          description: Medication code
+        medicationCodingSystem:
+          type: string
+          description: Coding system for the medication
+        notes:
+          description: Notes related to the medication
+          type: array
+          items:
+            type: string
+        ingredients:
+          description: List of drug ingredients
+          type: array
+          items:
+            type: object
+        oncologyClassification:
+          type: string
+          description: Oncology classification for the medication
+      required:
+      - id
+      - documentIds
+    ClinicalConceptAllergyDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the allergy record
+        documentIds:
+          description: List of document IDs associated with the allergy
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        allergy:
+          type: string
+          description: Allergy name or description
+        onsetDate:
+          type: string
+          description: Onset date of the allergy (ISO string)
+        recordedDate:
+          type: string
+          description: Date the allergy was recorded (ISO string)
+        clinicalStatus:
+          type: string
+          description: Clinical status of the allergy
+        reaction:
+          type: string
+          description: Reaction to the allergy
+      required:
+      - id
+      - documentIds
+    ClinicalConceptLabDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the lab record
+        documentIds:
+          description: List of document IDs associated with the lab
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        lab:
+          type: string
+          description: Lab name or description
+        labDate:
+          type: string
+          description: Date of the lab (ISO string)
+        labResult:
+          type: string
+          description: Result of the lab
+        labResultUnit:
+          type: string
+          description: Unit of the lab result
+        labResultInterpretation:
+          type: string
+          description: Interpretation of the lab result
+        rangeHigh:
+          type: string
+          description: High end of the reference range
+        rangeLow:
+          type: string
+          description: Low end of the reference range
+        labResultValue:
+          type: string
+          description: Value of the lab result
+      required:
+      - id
+      - documentIds
+    ClinicalConceptDemographicDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the demographic record
+        documentIds:
+          description: List of document IDs associated with the demographic
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        birthdate:
+          type: string
+          description: Birthdate (ISO string)
+        deathdate:
+          type: string
+          description: Deathdate (ISO string)
+        gender:
+          type: string
+          description: Gender of the subject
+        race:
+          type: string
+          description: Race of the subject
+        ethnicity:
+          type: string
+          description: Ethnicity of the subject
+        deceased:
+          type: boolean
+          description: Whether the subject is deceased
+        addressPostalCode:
+          type: string
+          description: Postal code of the subject address
+        demographic:
+          type: string
+          description: Demographic Name
+      required:
+      - id
+      - documentIds
+    ClinicalConceptRadiationDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the radiation record
+        documentIds:
+          description: List of document IDs associated with the radiation
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        fractionsPlanned:
+          type: number
+          description: Number of fractions planned
+        fractionsCompleted:
+          type: number
+          description: Number of fractions completed
+        totalDosePlanned:
+          type: number
+          description: Total radiation dose planned
+        totalDoseCompleted:
+          type: number
+          description: Total radiation dose completed
+        dosageUnits:
+          type: string
+          description: Units of dosage (e.g. Gy, cGy)
+        description:
+          type: string
+          description: Description of the radiation treatment
+        startDate:
+          type: string
+          description: Start date of the radiation treatment (ISO string)
+        endDate:
+          type: string
+          description: End date of the radiation treatment (ISO string)
+        bodySite:
+          type: string
+          description: Body site targeted by radiation
+        status:
+          type: string
+          description: Status of the radiation treatment
+        isCancerRelated:
+          type: boolean
+          description: Whether the radiation is cancer related
+        radiation:
+          type: string
+          description: Name of the radiation concept
+      required:
+      - id
+      - documentIds
+    ClinicalConceptConditionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the condition
+        documentIds:
+          description: List of document IDs associated with the condition
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        bodySites:
+          description: Body sites affected by the condition
+          type: array
+          items:
+            type: string
+        clinicalStatus:
+          type: string
+          description: Clinical status of the condition
+        conditionName:
+          type: string
+          description: Condition name
+        isCancerRelated:
+          type: boolean
+          description: Whether the condition is cancer related
+        onsetDate:
+          format: date-time
+          type: string
+          description: Onset date of the condition
+        stage:
+          type: string
+          description: Stage of the condition
+        metastaticSites:
+          type: string
+          description: Metastatic sites
+        histologyAndMorphology:
+          type: string
+          description: Histology and morphology details
+        encounterDate:
+          type: string
+          description: Date of the encounter associated with this condition
+      required:
+      - id
+      - documentIds
+    PaginationResultDto:
+      type: object
+      properties:
+        pageNumber:
+          type: number
+          default: 1
+          description: Page number to retrieve (1-based index)
+        pageSize:
+          type: number
+          default: 50
+          description: Number of items per page
+        sortField:
+          type: string
+          default: created
+          description: Field name to sort by
+        sortIsDescending:
+          type: boolean
+          default: false
+          description: Whether to sort in descending order
+        totalCount:
+          type: number
+          description: Total number of items matching the query
+        results:
+          description: List of results for the current page
+          type: array
+          items:
+            type: object
+      required:
+      - totalCount
+      - results
+    ClinicalConceptImagingDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the imaging record
+        documentIds:
+          description: List of document IDs associated with the imaging
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        procedure:
+          type: string
+          description: Procedure name or description
+        procedureLocation:
+          type: string
+          description: Location where the procedure was performed
+        procedureReason:
+          type: string
+          description: Reason for the procedure
+        procedureStartDate:
+          type: string
+          description: Start date of the procedure (ISO string)
+        procedureEndDate:
+          type: string
+          description: End date of the procedure (ISO string)
+        procedureCategory:
+          type: string
+          description: Category of the procedure
+        status:
+          type: string
+          description: Status of the imaging
+        findings:
+          type: string
+          description: Findings from the imaging
+        impression:
+          type: string
+          description: Impression from the imaging
+        impressionSummary:
+          type: string
+          description: Summary of the impression
+        description:
+          type: string
+          description: Description of the imaging
+        dim1:
+          type: number
+          description: Lesion size, first dimension (e.g., length)
+        dim2:
+          type: number
+          description: Lesion size, second dimension (e.g., width)
+        dim3:
+          type: number
+          description: Lesion size, third dimension (e.g., depth)
+        lesionLocation:
+          type: string
+          description: Location of the lesion
+        isCancerRelated:
+          type: boolean
+          description: Whether the imaging is cancer related
+      required:
+      - id
+      - documentIds
+    ClinicalConceptSurveyDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the survey record
+        documentIds:
+          description: List of document IDs associated with the survey
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        survey:
+          type: string
+          description: Survey name or description
+        surveyDate:
+          type: string
+          description: Date of the survey (ISO string)
+        surveyResult:
+          type: string
+          description: Result of the survey
+      required:
+      - id
+      - documentIds
+    ClinicalConceptFamilyHistoryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the family history record
+        documentIds:
+          description: List of document IDs associated with the family history
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        condition:
+          type: string
+          description: Condition in the family history
+        ageAtOnset:
+          type: string
+          description: Age at onset of the condition
+        relationship:
+          type: string
+          description: Relationship to the subject
+        cancerRelated:
+          type: boolean
+          description: Whether the condition is cancer related
+        isCancerRelated:
+          type: boolean
+          description: Whether the family history is cancer related
+        familyHistory:
+          type: string
+          description: Name for the family history
+      required:
+      - id
+      - documentIds
+    ClinicalConceptCoverageDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the coverage record
+        documentIds:
+          description: List of document IDs associated with the coverage
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        coverage:
+          type: string
+          description: The name of the coverage
+        coverageStart:
+          type: string
+          description: Coverage start date (ISO string)
+        coverageEnd:
+          type: string
+          description: Coverage end date (ISO string)
+        payor:
+          type: string
+          description: Payor for the coverage
+        payorType:
+          type: string
+          description: Type of payor
+        relationship:
+          type: string
+          description: Relationship to the subscriber
+        subscriberType:
+          type: string
+          description: Type of subscriber
+        subscriberId:
+          type: string
+          description: Subscriber/member insurance ID
+        groupNumber:
+          type: string
+          description: Insurance group number
+      required:
+      - id
+      - documentIds
+    ClinicalConceptBiomarkerDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the biomarker record
+        documentIds:
+          description: List of document IDs associated with the biomarker
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        biomarker:
+          type: string
+          description: Name of the biomarker
+        alteration:
+          type: string
+          description: Alteration of the biomarker
+        interpretation:
+          type: string
+          description: Interpretation of the biomarker
+        vaf:
+          type: number
+          description: Variant allele frequency (VAF)
+        results:
+          type: number
+          description: Results value for the biomarker
+        resultsValue:
+          type: string
+          description: String representation of the biomarker result
+        impact:
+          type: string
+          description: Impact of the biomarker
+        method:
+          type: string
+          description: Method used for biomarker detection
+        diagnosticReport:
+          type: string
+          description: Diagnostic report details
+        reportDate:
+          type: string
+          description: Date of the report (ISO string)
+        collectionDate:
+          type: string
+          description: Date of specimen collection (ISO string)
+        specimenLocation:
+          type: string
+          description: Location of the specimen
+        sourceClass:
+          type: string
+          description: Genomic source class (Germline, Somatic, Unknown)
+      required:
+      - id
+      - documentIds
+    ClinicalConceptEncounterDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the encounter record
+        documentIds:
+          description: List of document IDs associated with the encounter
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        encounterDate:
+          type: string
+          description: Date of the encounter (ISO string)
+        encounterType:
+          type: string
+          description: Type of the encounter
+        locationType:
+          type: string
+          description: Type of location for the encounter
+        locationName:
+          type: string
+          description: Name of the location for the encounter
+        address:
+          type: string
+          description: Address of the encounter location
+        city:
+          type: string
+          description: City of the encounter location
+        state:
+          type: string
+          description: State of the encounter location
+        postalcode:
+          type: string
+          description: Postal code of the encounter location
+        providerFirstName:
+          type: string
+          description: Provider first name
+        providerMiddleName:
+          type: string
+          description: Provider middle name
+        providerLastName:
+          type: string
+          description: Provider last name
+        providerSuffix:
+          type: string
+          description: Provider suffix (e.g. MD, DO)
+        encounterDiagnosis:
+          type: string
+          description: Diagnosis associated with the encounter
+        dischargeDisposition:
+          type: string
+          description: Discharge disposition for the encounter
+        encounter:
+          type: string
+          description: Class of the encounter
+        npi:
+          type: string
+          description: The provider's National Provider Identifier
+        specialty:
+          type: string
+          description: The provider's specialty
+      required:
+      - id
+      - documentIds
+    ClinicalConceptSocialHistoryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the social history record
+        documentIds:
+          description: List of document IDs associated with the social history
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        socialHistory:
+          type: string
+          description: Social history description
+        socialHistoryDate:
+          type: string
+          description: Date of the social history (ISO string)
+        result:
+          type: string
+          description: The observed result of the social history
+      required:
+      - id
+      - documentIds
+    ClinicalConceptVitalDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the vital record
+        documentIds:
+          description: List of document IDs associated with the vital
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        vitals:
+          type: string
+          description: Vitals name or description
+        vitalsDate:
+          type: string
+          description: Date of the vitals (ISO string)
+        vitalsResult:
+          type: string
+          description: Result of the vitals
+        vitalsResultUnit:
+          type: string
+          description: Unit of the vitals result
+        vitalsResultValue:
+          type: string
+          description: Value of the vitals result
+        rangeHigh:
+          type: string
+          description: Upper bound of the reference range
+        rangeLow:
+          type: string
+          description: Lower bound of the reference range
+      required:
+      - id
+      - documentIds
+    ClinicalConceptProcedureDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the procedure record
+        documentIds:
+          description: List of document IDs associated with the procedure
+          type: array
+          items:
+            type: string
+        codes:
+          description: Codes from source documents. Type "standard" indicates the code that determined the OMOP concept assignment
+          type: array
+          items:
+            type: string
+        procedure:
+          type: string
+          description: Procedure name or description
+        procedureLocation:
+          type: string
+          description: Location where the procedure was performed
+        procedureReason:
+          type: string
+          description: Reason for the procedure
+        procedureStartDate:
+          type: string
+          description: Start date of the procedure (ISO string)
+        procedureEndDate:
+          type: string
+          description: End date of the procedure (ISO string)
+        cancerRelated:
+          type: boolean
+          description: Whether the procedure is cancer related
+        procedureCategory:
+          type: string
+          description: Category of the procedure
+        status:
+          type: string
+          description: Status of the procedure
+      required:
+      - id
+      - documentIds
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http

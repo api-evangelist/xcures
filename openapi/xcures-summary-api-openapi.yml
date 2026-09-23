@@ -1,0 +1,102 @@
+openapi: 3.2.0
+info:
+  title: xCures Summary API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: Summary
+  description: The AI-generated summary of a patient’s overall records and condition(s).
+paths:
+  /api/v1/patient-registry/summary/subject/{subjectId}:
+    get:
+      operationId: PublicSummaryController_subjectSummary
+      summary: Subject Summary
+      description: Fetches the summary for a given subject. Throws a Forbidden error if the summary feature is disabled for the project.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: subjectId
+        required: true
+        in: path
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectSummaryDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: 'Forbidden: The summary feature is not enabled for the project.'
+        '429':
+          description: ''
+      tags:
+      - Summary
+      security:
+      - bearer: []
+components:
+  schemas:
+    SubjectSummaryDto:
+      type: object
+      properties:
+        overview:
+          type: string
+          description: An overview or summary of the subject.
+          example: This is a summary of the subject's details.
+        referencedDocuments:
+          description: A list of documents referenced in the subject summary.
+          example:
+          - documentId: doc12345
+            referencedStrings:
+            - string1
+            - string2
+          - documentId: doc67890
+            referencedStrings:
+            - stringA
+            - stringB
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferencedDocumentDto'
+      required:
+      - overview
+      - referencedDocuments
+    ReferencedDocumentDto:
+      type: object
+      properties:
+        documentId:
+          type: string
+          description: The unique identifier of the document.
+          example: doc12345
+        referencedStrings:
+          description: A list of strings referenced in the document.
+          example:
+          - string1
+          - string2
+          - string3
+          type: array
+          items:
+            type: string
+      required:
+      - documentId
+      - referencedStrings
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http

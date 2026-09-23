@@ -1,0 +1,524 @@
+openapi: 3.2.0
+info:
+  title: xCures Document API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: Document
+  description: Patient records retrieved by the xCures platform and/or loaded by platform users.
+paths:
+  /api/v1/patient-registry/document:
+    post:
+      operationId: PublicDocumentController_create
+      summary: Create a Document
+      description: Create a new document for a subject and get a signed URL to upload the document.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDocumentRequest'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDocumentResponse'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Document
+      security:
+      - bearer: []
+    get:
+      operationId: PublicDocumentController_getAll
+      summary: Search Documents
+      description: Get a paginated list of documents for a subject.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: false
+        in: query
+        description: Page number to retrieve (1-based index)
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of items per page
+        schema:
+          default: 50
+          type: number
+      - name: sortField
+        required: false
+        in: query
+        description: Field name to sort by
+        schema:
+          default: created
+          type: string
+      - name: sortIsDescending
+        required: false
+        in: query
+        description: Whether to sort in descending order
+        schema:
+          default: false
+          type: boolean
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      - name: informationTypes
+        required: false
+        in: query
+        description: Document Classifications (an Array of strings)
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentPaginationResult'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Document
+      security:
+      - bearer: []
+  /api/v1/patient-registry/document/{documentId}:
+    get:
+      operationId: PublicDocumentController_getById
+      summary: Get Document
+      description: Get a specific document by id.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: documentId
+        required: true
+        in: path
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentDetail'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Document
+      security:
+      - bearer: []
+    put:
+      operationId: PublicDocumentController_update
+      summary: Update Document
+      description: Update a document.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: documentId
+        required: true
+        in: path
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDocumentRequest'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentSummary'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Document
+      security:
+      - bearer: []
+  /api/v1/patient-registry/document/{documentId}/reciprocity:
+    put:
+      operationId: PublicDocumentController_reciprocity
+      summary: Publish Document
+      description: Publish a document for reciprocity to the EHR network. Can be used to update the template used for reciprocity as well. Note that the project's Reciprocity must be enabled and Requester Information and Encounter Information need to be properly set up in the Administration UI.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: documentId
+        required: true
+        in: path
+        schema:
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentReciprocityDto'
+      responses:
+        '200':
+          description: Empty body. Document published for reciprocity successfully.
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Document
+      security:
+      - bearer: []
+    delete:
+      operationId: PublicDocumentController_unpublish
+      summary: Unpublish Document
+      description: Unpublish a document from reciprocity in the EHR network.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: documentId
+        required: true
+        in: path
+        schema:
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          type: string
+      responses:
+        '200':
+          description: Empty body. Document unpublished successfully.
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Document
+      security:
+      - bearer: []
+  /api/v1/patient-registry/document/{documentId}/pdf:
+    get:
+      operationId: PublicDocumentController_getPdfById
+      summary: Get Document PDF URL
+      description: Get a signed URL to download the PDF version of a document.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: documentId
+        required: true
+        in: path
+        schema:
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentPdfUrlDto'
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '404':
+          description: ''
+        '429':
+          description: ''
+      tags:
+      - Document
+      security:
+      - bearer: []
+components:
+  schemas:
+    CreateDocumentRequest:
+      type: object
+      properties:
+        subjectId:
+          type: string
+        documentName:
+          type: string
+          description: Display name for this document
+        documentDate:
+          format: date-time
+          type: string
+        fileName:
+          type: string
+        informationTypes:
+          description: Document Classifications (an Array of strings)
+          type: array
+          items:
+            type: string
+        contentType:
+          type: string
+          format: MIME
+          example: application/xml
+      required:
+      - subjectId
+      - fileName
+      - contentType
+    DocumentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        created:
+          format: date-time
+          type: string
+        updated:
+          format: date-time
+          type: string
+        subjectId:
+          type: string
+        source:
+          type: string
+          enum:
+          - fhir
+          - ccda
+          - box
+          - userUpload
+          - patientFhir
+        sourceId:
+          type: string
+        documentName:
+          type: string
+          description: Display name for this document
+        documentLocation:
+          type: string
+        documentDate:
+          format: date-time
+          type: string
+        fileName:
+          type: string
+        contentType:
+          type: string
+        informationTypes:
+          description: Document Classifications (an Array of strings)
+          type: array
+          items:
+            type: string
+      required:
+      - id
+      - created
+      - updated
+      - subjectId
+      - fileName
+    UpdateDocumentRequest:
+      type: object
+      properties:
+        documentName:
+          type: string
+          description: Display name for this document
+        documentLocation:
+          type: string
+        documentDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+    DocumentReciprocityDto:
+      type: object
+      properties:
+        templateId:
+          type: string
+          format: uuid
+          example: c8ffe813-1e61-42aa-a26f-a0e9ab6ed1fd
+          description: The ID of the template to use for reciprocity. See available templates at `GET /api/v1/patient-registry/reciprocity-template`.
+      required:
+      - templateId
+    DocumentPaginationResult:
+      type: object
+      properties:
+        pageNumber:
+          type: number
+          default: 1
+          description: Page number to retrieve (1-based index)
+        pageSize:
+          type: number
+          default: 50
+          description: Number of items per page
+        sortField:
+          type: string
+          default: created
+          description: Field name to sort by
+        sortIsDescending:
+          type: boolean
+          default: false
+          description: Whether to sort in descending order
+        totalCount:
+          type: number
+          description: Total number of items matching the query
+        results:
+          description: List of results for the current page
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentSummary'
+      required:
+      - totalCount
+      - results
+    CreateDocumentResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+        signedS3Url:
+          type: string
+      required:
+      - documentId
+      - signedS3Url
+    DocumentDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        created:
+          format: date-time
+          type: string
+        updated:
+          format: date-time
+          type: string
+        subjectId:
+          type: string
+        source:
+          type: string
+          enum:
+          - fhir
+          - ccda
+          - box
+          - userUpload
+          - patientFhir
+        sourceId:
+          type: string
+        documentName:
+          type: string
+          description: Display name for this document
+        documentLocation:
+          type: string
+        documentDate:
+          format: date-time
+          type: string
+        fileName:
+          type: string
+        contentType:
+          type: string
+        signedS3Url:
+          type: string
+      required:
+      - id
+      - created
+      - updated
+      - subjectId
+      - fileName
+      - signedS3Url
+    DocumentPdfUrlDto:
+      type: object
+      properties:
+        fileName:
+          type: string
+          description: The name of the PDF file.
+        signedUrl:
+          type: string
+          description: A signed URL to download the PDF. Valid for 15 minutes.
+      required:
+      - fileName
+      - signedUrl
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http

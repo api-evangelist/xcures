@@ -1,0 +1,719 @@
+openapi: 3.2.0
+info:
+  title: xCures FHIR API
+  description: '# Authentication
+
+    Our API requires a Bearer Token in the `Authorization` header for auth.'
+  version: V1
+  x-logo:
+    url: https://prod-xc-public-marketing.s3.us-west-2.amazonaws.com/xCures-emails-logo.png
+servers:
+- url: https://partner.xcures.com
+tags:
+- name: FHIR
+  description: '**F**ast **H**ealthcare **I**nteroperability **R**esource is an international data model specification developed by HL7 International to enable healthcare data exchange and interoperability between different systems.'
+paths:
+  /api/v1/patient-registry/fhir/allergyintolerance:
+    get:
+      operationId: PublicFhirController_allergyIntolerance
+      summary: Allergy Intolerances
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/basic:
+    get:
+      operationId: PublicFhirController_basic
+      summary: Basics
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/careplan:
+    get:
+      operationId: PublicFhirController_carePlan
+      summary: Care Plans
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/coverage:
+    get:
+      operationId: PublicFhirController_coverage
+      summary: Coverages
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/condition:
+    get:
+      operationId: PublicFhirController_condition
+      summary: Conditions
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/diagnosticreport:
+    get:
+      operationId: PublicFhirController_diagnosticReport
+      summary: Diagnostic Reports
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/encounter:
+    get:
+      operationId: PublicFhirController_encounter
+      summary: Encounters
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/medicationstatement:
+    get:
+      operationId: PublicFhirController_medicationstatement
+      summary: Medication Statements
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/patient:
+    get:
+      operationId: PublicFhirController_patient
+      summary: Patients
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/procedure:
+    get:
+      operationId: PublicFhirController_procedure
+      summary: Procedures
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/observation:
+    get:
+      operationId: PublicFhirController_observation
+      summary: Observations
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/specimen:
+    get:
+      operationId: PublicFhirController_specimen
+      summary: Specimens
+      description: Search the specific FHIR resources by `subjectId`. For the latest documentation of the response, please see the Resource Bundle definition in the FHIR spec.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: pageNumber
+        required: true
+        in: query
+        schema:
+          default: 1
+          type: number
+      - name: pageSize
+        required: true
+        in: query
+        schema:
+          default: 50
+          type: number
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">Resource Bundle definition in the FHIR spec.</a>
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json+fhir
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+  /api/v1/patient-registry/fhir/_export:
+    get:
+      operationId: PublicFhirController_export
+      summary: Export FHIR Resources
+      description: Export a FHIR Bundle containing all of the subject's resources. The resulting FHIR Bundle will be in JSON Lines format.
+      parameters:
+      - name: ProjectId
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: e6b01018-a333-4732-917e-fe38e91b0fdf
+      - name: subjectId
+        required: true
+        in: query
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '400':
+          description: ''
+        '401':
+          description: ''
+        '403':
+          description: ''
+        '429':
+          description: ''
+        default:
+          description: The result of the FHIR resource export.
+          headers:
+            content-type:
+              schema:
+                type: string
+                enum:
+                - application/json
+            expires:
+              description: Indicates when the resulting output URL(s) will expire.
+              schema:
+                type: string
+                example: Wed, 21 Oct 2023 07:28:00 GMT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FhirExportResponseDto'
+      tags:
+      - FHIR
+      security:
+      - bearer: []
+components:
+  schemas:
+    FhirExportResponseDto:
+      type: object
+      properties:
+        transactionTime:
+          format: date-time
+          type: string
+          description: When the export request was made.
+        expires:
+          format: date-time
+          type: string
+          description: When the resulting output URL(s) will expire.
+        requiresAccessToken:
+          type: boolean
+          description: Whether the requests represented by in the `output` array require an access token.
+        output:
+          description: The resulting FHIR resource output will be a collection of FHIR resources in <a href="https://jsonlines.org/" target="_blank">JSON Lines</a> format, with one FHIR resource per line. Please see the <a href="https://hl7.org/fhir/R4/bundle.html" target="_blank">FHIR R4 resource definitions.</a>
+          type: array
+          items:
+            type: string
+      required:
+      - transactionTime
+      - expires
+      - requiresAccessToken
+      - output
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
