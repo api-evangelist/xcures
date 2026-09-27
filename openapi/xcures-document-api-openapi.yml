@@ -327,32 +327,6 @@ paths:
       - bearer: []
 components:
   schemas:
-    CreateDocumentRequest:
-      type: object
-      properties:
-        subjectId:
-          type: string
-        documentName:
-          type: string
-          description: Display name for this document
-        documentDate:
-          format: date-time
-          type: string
-        fileName:
-          type: string
-        informationTypes:
-          description: Document Classifications (an Array of strings)
-          type: array
-          items:
-            type: string
-        contentType:
-          type: string
-          format: MIME
-          example: application/xml
-      required:
-      - subjectId
-      - fileName
-      - contentType
     DocumentSummary:
       type: object
       properties:
@@ -399,18 +373,6 @@ components:
       - updated
       - subjectId
       - fileName
-    UpdateDocumentRequest:
-      type: object
-      properties:
-        documentName:
-          type: string
-          description: Display name for this document
-        documentLocation:
-          type: string
-        documentDate:
-          format: yyyy-mm-dd
-          type: string
-          example: '2023-05-26'
     DocumentReciprocityDto:
       type: object
       properties:
@@ -421,46 +383,6 @@ components:
           description: The ID of the template to use for reciprocity. See available templates at `GET /api/v1/patient-registry/reciprocity-template`.
       required:
       - templateId
-    DocumentPaginationResult:
-      type: object
-      properties:
-        pageNumber:
-          type: number
-          default: 1
-          description: Page number to retrieve (1-based index)
-        pageSize:
-          type: number
-          default: 50
-          description: Number of items per page
-        sortField:
-          type: string
-          default: created
-          description: Field name to sort by
-        sortIsDescending:
-          type: boolean
-          default: false
-          description: Whether to sort in descending order
-        totalCount:
-          type: number
-          description: Total number of items matching the query
-        results:
-          description: List of results for the current page
-          type: array
-          items:
-            $ref: '#/components/schemas/DocumentSummary'
-      required:
-      - totalCount
-      - results
-    CreateDocumentResponse:
-      type: object
-      properties:
-        documentId:
-          type: string
-        signedS3Url:
-          type: string
-      required:
-      - documentId
-      - signedS3Url
     DocumentDetail:
       type: object
       properties:
@@ -517,6 +439,84 @@ components:
       required:
       - fileName
       - signedUrl
+    DocumentPaginationResult:
+      type: object
+      properties:
+        pageNumber:
+          type: number
+          default: 1
+          description: Page number to retrieve (1-based index)
+        pageSize:
+          type: number
+          default: 50
+          description: Number of items per page
+        sortField:
+          type: string
+          default: created
+          description: Field name to sort by
+        sortIsDescending:
+          type: boolean
+          default: false
+          description: Whether to sort in descending order
+        totalCount:
+          type: number
+          description: Total number of items matching the query
+        results:
+          description: List of results for the current page
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentSummary'
+      required:
+      - totalCount
+      - results
+    UpdateDocumentRequest:
+      type: object
+      properties:
+        documentName:
+          type: string
+          description: Display name for this document
+        documentLocation:
+          type: string
+        documentDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+    CreateDocumentRequest:
+      type: object
+      properties:
+        subjectId:
+          type: string
+        documentName:
+          type: string
+          description: Display name for this document
+        documentDate:
+          format: date-time
+          type: string
+        fileName:
+          type: string
+        informationTypes:
+          description: Document Classifications (an Array of strings)
+          type: array
+          items:
+            type: string
+        contentType:
+          type: string
+          format: MIME
+          example: application/xml
+      required:
+      - subjectId
+      - fileName
+      - contentType
+    CreateDocumentResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+        signedS3Url:
+          type: string
+      required:
+      - documentId
+      - signedS3Url
   securitySchemes:
     bearer:
       scheme: bearer

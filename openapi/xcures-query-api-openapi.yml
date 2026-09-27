@@ -231,39 +231,6 @@ components:
       required:
       - totalCount
       - results
-    QueryAttempt:
-      type: object
-      properties:
-        queryId:
-          type: string
-        created:
-          format: date-time
-          type: string
-        fhirResult:
-          type: string
-          enum:
-          - delayed
-          - initiated
-          - pending
-          - inProgress
-          - completed
-          - exhausted
-          - error
-        ccdaResult:
-          type: string
-          enum:
-          - delayed
-          - initiated
-          - pending
-          - inProgress
-          - completed
-          - exhausted
-          - error
-        message:
-          type: string
-      required:
-      - queryId
-      - created
     GetQueryResponse:
       type: object
       properties:
@@ -317,6 +284,39 @@ components:
             type: string
       required:
       - subjectId
+    QueryAttempt:
+      type: object
+      properties:
+        queryId:
+          type: string
+        created:
+          format: date-time
+          type: string
+        fhirResult:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        ccdaResult:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        message:
+          type: string
+      required:
+      - queryId
+      - created
     Query:
       type: object
       properties:

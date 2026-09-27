@@ -1,6 +1,6 @@
 openapi: 3.2.0
 info:
-  title: xCures O Auth API
+  title: xCures OAuth API
   description: '# Authentication
 
     Our API requires a Bearer Token in the `Authorization` header for auth.'
@@ -42,19 +42,6 @@ paths:
       - OAuth
 components:
   schemas:
-    OAuthTokenResponseDto:
-      type: object
-      properties:
-        access_token:
-          type: string
-          description: The credential used to authenticate API requests.
-        token_type:
-          type: string
-          example: Bearer
-          description: The type of token being issued.
-      required:
-      - access_token
-      - token_type
     OAuthTokenRequestDto:
       type: object
       properties:
@@ -76,6 +63,19 @@ components:
       - client_id
       - client_secret
       - grant_type
+    OAuthTokenResponseDto:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: The credential used to authenticate API requests.
+        token_type:
+          type: string
+          example: Bearer
+          description: The type of token being issued.
+      required:
+      - access_token
+      - token_type
   securitySchemes:
     bearer:
       scheme: bearer
