@@ -383,6 +383,54 @@ components:
           description: The ID of the template to use for reciprocity. See available templates at `GET /api/v1/patient-registry/reciprocity-template`.
       required:
       - templateId
+    CreateDocumentResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+        signedS3Url:
+          type: string
+      required:
+      - documentId
+      - signedS3Url
+    DocumentPdfUrlDto:
+      type: object
+      properties:
+        fileName:
+          type: string
+          description: The name of the PDF file.
+        signedUrl:
+          type: string
+          description: A signed URL to download the PDF. Valid for 15 minutes.
+      required:
+      - fileName
+      - signedUrl
+    CreateDocumentRequest:
+      type: object
+      properties:
+        subjectId:
+          type: string
+        documentName:
+          type: string
+          description: Display name for this document
+        documentDate:
+          format: date-time
+          type: string
+        fileName:
+          type: string
+        informationTypes:
+          description: Document Classifications (an Array of strings)
+          type: array
+          items:
+            type: string
+        contentType:
+          type: string
+          format: MIME
+          example: application/xml
+      required:
+      - subjectId
+      - fileName
+      - contentType
     DocumentDetail:
       type: object
       properties:
@@ -427,18 +475,18 @@ components:
       - subjectId
       - fileName
       - signedS3Url
-    DocumentPdfUrlDto:
+    UpdateDocumentRequest:
       type: object
       properties:
-        fileName:
+        documentName:
           type: string
-          description: The name of the PDF file.
-        signedUrl:
+          description: Display name for this document
+        documentLocation:
           type: string
-          description: A signed URL to download the PDF. Valid for 15 minutes.
-      required:
-      - fileName
-      - signedUrl
+        documentDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
     DocumentPaginationResult:
       type: object
       properties:
@@ -469,54 +517,6 @@ components:
       required:
       - totalCount
       - results
-    UpdateDocumentRequest:
-      type: object
-      properties:
-        documentName:
-          type: string
-          description: Display name for this document
-        documentLocation:
-          type: string
-        documentDate:
-          format: yyyy-mm-dd
-          type: string
-          example: '2023-05-26'
-    CreateDocumentRequest:
-      type: object
-      properties:
-        subjectId:
-          type: string
-        documentName:
-          type: string
-          description: Display name for this document
-        documentDate:
-          format: date-time
-          type: string
-        fileName:
-          type: string
-        informationTypes:
-          description: Document Classifications (an Array of strings)
-          type: array
-          items:
-            type: string
-        contentType:
-          type: string
-          format: MIME
-          example: application/xml
-      required:
-      - subjectId
-      - fileName
-      - contentType
-    CreateDocumentResponse:
-      type: object
-      properties:
-        documentId:
-          type: string
-        signedS3Url:
-          type: string
-      required:
-      - documentId
-      - signedS3Url
   securitySchemes:
     bearer:
       scheme: bearer

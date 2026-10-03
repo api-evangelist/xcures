@@ -149,6 +149,52 @@ paths:
       - bearer: []
 components:
   schemas:
+    ClinicalConceptDto:
+      type: object
+      properties:
+        clinicalConceptId:
+          type: string
+          description: The ID of the clinical concept.
+        entityType:
+          type: string
+          description: The type of clinical concept.
+      required:
+      - clinicalConceptId
+      - entityType
+    Checklist:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Display name of the checklist.
+        sortOrder:
+          type: number
+          description: Order in which the checklist is displayed.
+        items:
+          description: Items in the checklist.
+          type: array
+          items:
+            $ref: '#/components/schemas/ChecklistItem'
+      required:
+      - id
+      - name
+      - sortOrder
+      - items
+    ChecklistEvaluationRequest:
+      type: object
+      properties:
+        subjectId:
+          type: string
+          format: uuid
+          description: The ID of the subject to evaluate the checklist for.
+        regenerate:
+          type: boolean
+          description: If true, forces regeneration of the checklist evaluation even if a recent evaluation exists.
+      required:
+      - subjectId
     ChecklistItemFeedbackRequest:
       type: object
       properties:
@@ -170,50 +216,6 @@ components:
       required:
       - subjectId
       - feedbackType
-    ChecklistEvaluationRequest:
-      type: object
-      properties:
-        subjectId:
-          type: string
-          format: uuid
-          description: The ID of the subject to evaluate the checklist for.
-        regenerate:
-          type: boolean
-          description: If true, forces regeneration of the checklist evaluation even if a recent evaluation exists.
-      required:
-      - subjectId
-    ClinicalConceptDto:
-      type: object
-      properties:
-        clinicalConceptId:
-          type: string
-          description: The ID of the clinical concept.
-        entityType:
-          type: string
-          description: The type of clinical concept.
-      required:
-      - clinicalConceptId
-      - entityType
-    ChecklistItem:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        libraryItemId:
-          type: string
-          description: Checklist library item ID. For `static` type checklists, identifies the library item type. For `questionnaire` type checklists, uniquely identifies the item in the checklist.
-        name:
-          type: string
-          description: Display name of the checklist item.
-        sortOrder:
-          type: number
-          description: Order in which to display this checklist item.
-      required:
-      - id
-      - libraryItemId
-      - name
-      - sortOrder
     ChecklistEvaluationResult:
       type: object
       properties:
@@ -244,28 +246,45 @@ components:
       - eligibilitySatisfied
       - items
       - documentIds
-    Checklist:
+    DocumentSectionDto:
       type: object
       properties:
-        id:
+        documentId:
           type: string
-          format: uuid
-        name:
+          description: The ID of the document this section appears in.
+        sectionType:
           type: string
-          description: Display name of the checklist.
-        sortOrder:
+          enum:
+          - ccda
+          - page
+          description: The type of document section.
+        section:
+          type: string
+          description: Uniquely identifies this section within the document. For `ccda` sectionTypes, this is the CCDA section code. For `page` sectionTypes, this is the page number.
+        sectionTitle:
+          type: string
+          description: For `ccda` type sections, the title of the section.
+        documentName:
+          type: string
+          description: The name of the document.
+        documentLocation:
+          type: string
+          description: The facility or location associated with this document.
+        documentContentType:
+          type: string
+          description: The document content MIME type.
+        documentDate:
+          format: date-time
+          type: string
+          description: The date associated with the document, when known. May be absent.
+        documentFileSizeBytes:
           type: number
-          description: Order in which the checklist is displayed.
-        items:
-          description: Items in the checklist.
-          type: array
-          items:
-            $ref: '#/components/schemas/ChecklistItem'
+          description: The size of the document in bytes.
       required:
-      - id
-      - name
-      - sortOrder
-      - items
+      - documentId
+      - sectionType
+      - section
+      - documentContentType
     ChecklistItemEvaluationResult:
       type: object
       properties:
@@ -315,45 +334,26 @@ components:
       - documentIds
       - clinicalConcepts
       - documentSections
-    DocumentSectionDto:
+    ChecklistItem:
       type: object
       properties:
-        documentId:
+        id:
           type: string
-          description: The ID of the document this section appears in.
-        sectionType:
+          format: uuid
+        libraryItemId:
           type: string
-          enum:
-          - ccda
-          - page
-          description: The type of document section.
-        section:
+          description: Checklist library item ID. For `static` type checklists, identifies the library item type. For `questionnaire` type checklists, uniquely identifies the item in the checklist.
+        name:
           type: string
-          description: Uniquely identifies this section within the document. For `ccda` sectionTypes, this is the CCDA section code. For `page` sectionTypes, this is the page number.
-        sectionTitle:
-          type: string
-          description: For `ccda` type sections, the title of the section.
-        documentName:
-          type: string
-          description: The name of the document.
-        documentLocation:
-          type: string
-          description: The facility or location associated with this document.
-        documentContentType:
-          type: string
-          description: The document content MIME type.
-        documentDate:
-          format: date-time
-          type: string
-          description: The date associated with the document, when known. May be absent.
-        documentFileSizeBytes:
+          description: Display name of the checklist item.
+        sortOrder:
           type: number
-          description: The size of the document in bytes.
+          description: Order in which to display this checklist item.
       required:
-      - documentId
-      - sectionType
-      - section
-      - documentContentType
+      - id
+      - libraryItemId
+      - name
+      - sortOrder
   securitySchemes:
     bearer:
       scheme: bearer

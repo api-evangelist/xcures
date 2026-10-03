@@ -268,6 +268,56 @@ components:
       - subjectId
       - created
       - userId
+    QueryDto:
+      type: object
+      properties:
+        id:
+          type: string
+        subjectId:
+          type: string
+        created:
+          format: date-time
+          type: string
+        fhirStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        ccdaStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        userId:
+          type: string
+        externalPatientId:
+          type: string
+        externalQueryId:
+          type: string
+        queryAttempts:
+          type: array
+          items:
+            type: string
+      required:
+      - id
+      - subjectId
+      - created
+      - fhirStatus
+      - ccdaStatus
+      - userId
+      - externalPatientId
+      - externalQueryId
+      - queryAttempts
     CreateQueryDto:
       type: object
       properties:
@@ -358,56 +408,6 @@ components:
       - subjectId
       - created
       - userId
-    QueryDto:
-      type: object
-      properties:
-        id:
-          type: string
-        subjectId:
-          type: string
-        created:
-          format: date-time
-          type: string
-        fhirStatus:
-          type: string
-          enum:
-          - delayed
-          - initiated
-          - pending
-          - inProgress
-          - completed
-          - exhausted
-          - error
-        ccdaStatus:
-          type: string
-          enum:
-          - delayed
-          - initiated
-          - pending
-          - inProgress
-          - completed
-          - exhausted
-          - error
-        userId:
-          type: string
-        externalPatientId:
-          type: string
-        externalQueryId:
-          type: string
-        queryAttempts:
-          type: array
-          items:
-            type: string
-      required:
-      - id
-      - subjectId
-      - created
-      - fhirStatus
-      - ccdaStatus
-      - userId
-      - externalPatientId
-      - externalQueryId
-      - queryAttempts
   securitySchemes:
     bearer:
       scheme: bearer

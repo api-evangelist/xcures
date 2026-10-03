@@ -131,6 +131,82 @@ paths:
       - bearer: []
 components:
   schemas:
+    CreateApplication:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: c8ec1d54-a85c-411f-aa12-fd3a7f2480f4
+        firstName:
+          type: string
+          example: David
+        middleName:
+          type: string
+          example: Quincy
+          description: Full middle name or a bare initial; omit if the applicant has none.
+        lastName:
+          type: string
+          example: Mann
+        birthDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        addressLine1:
+          type: string
+          example: 123 Main St.
+        addressLine2:
+          type: string
+          example: Apt 4B
+        addressCity:
+          type: string
+          example: Minneapolis
+        addressState:
+          type: string
+          format: XX
+          example: MN
+          description: Two letter state code
+        addressPostalCode:
+          type: string
+          maxLength: 10
+          example: '55401'
+        sexAtBirth:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+        emailAddress:
+          type: string
+          format: email
+          example: david.mann@example.com
+        phoneNumber:
+          type: string
+          example: 123-456-7890
+        cohortId:
+          type: string
+          format: uuid
+          example: f46c52af-820b-4169-82af-b740b54d8bb5
+        onConsentWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when an applicant accepts or denies consent.
+          example: https://example.com/webhooks/consent
+        onIdentityValidationWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when there's a result for an applicant's identity validation.
+          example: https://example.com/webhooks/identity-validation
+        onQueryResultWebhookUrl:
+          type: string
+          description: Webhook URL to invoke when there's a result for an applicant's EHR query.
+          example: https://example.com/webhooks/ehr-query
+      required:
+      - id
+      - firstName
+      - lastName
+      - birthDate
+      - addressPostalCode
+      - sexAtBirth
+      - emailAddress
     CreateApplicationResponse:
       type: object
       properties:
@@ -330,82 +406,6 @@ components:
           type: string
         onQueryResultWebhookUrl:
           type: string
-    CreateApplication:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: c8ec1d54-a85c-411f-aa12-fd3a7f2480f4
-        firstName:
-          type: string
-          example: David
-        middleName:
-          type: string
-          example: Quincy
-          description: Full middle name or a bare initial; omit if the applicant has none.
-        lastName:
-          type: string
-          example: Mann
-        birthDate:
-          format: yyyy-mm-dd
-          type: string
-          example: '2023-05-26'
-        addressLine1:
-          type: string
-          example: 123 Main St.
-        addressLine2:
-          type: string
-          example: Apt 4B
-        addressCity:
-          type: string
-          example: Minneapolis
-        addressState:
-          type: string
-          format: XX
-          example: MN
-          description: Two letter state code
-        addressPostalCode:
-          type: string
-          maxLength: 10
-          example: '55401'
-        sexAtBirth:
-          type: string
-          enum:
-          - male
-          - female
-          - unknown
-        emailAddress:
-          type: string
-          format: email
-          example: david.mann@example.com
-        phoneNumber:
-          type: string
-          example: 123-456-7890
-        cohortId:
-          type: string
-          format: uuid
-          example: f46c52af-820b-4169-82af-b740b54d8bb5
-        onConsentWebhookUrl:
-          type: string
-          description: Webhook URL to invoke when an applicant accepts or denies consent.
-          example: https://example.com/webhooks/consent
-        onIdentityValidationWebhookUrl:
-          type: string
-          description: Webhook URL to invoke when there's a result for an applicant's identity validation.
-          example: https://example.com/webhooks/identity-validation
-        onQueryResultWebhookUrl:
-          type: string
-          description: Webhook URL to invoke when there's a result for an applicant's EHR query.
-          example: https://example.com/webhooks/ehr-query
-      required:
-      - id
-      - firstName
-      - lastName
-      - birthDate
-      - addressPostalCode
-      - sexAtBirth
-      - emailAddress
   securitySchemes:
     bearer:
       scheme: bearer
