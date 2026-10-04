@@ -327,6 +327,138 @@ paths:
       - bearer: []
 components:
   schemas:
+    CreateDocumentResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+        signedS3Url:
+          type: string
+      required:
+      - documentId
+      - signedS3Url
+    DocumentDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        created:
+          format: date-time
+          type: string
+        updated:
+          format: date-time
+          type: string
+        subjectId:
+          type: string
+        source:
+          type: string
+          enum:
+          - fhir
+          - ccda
+          - box
+          - userUpload
+          - patientFhir
+        sourceId:
+          type: string
+        documentName:
+          type: string
+          description: Display name for this document
+        documentLocation:
+          type: string
+        documentDate:
+          format: date-time
+          type: string
+        fileName:
+          type: string
+        contentType:
+          type: string
+        signedS3Url:
+          type: string
+      required:
+      - id
+      - created
+      - updated
+      - subjectId
+      - fileName
+      - signedS3Url
+    DocumentPdfUrlDto:
+      type: object
+      properties:
+        fileName:
+          type: string
+          description: The name of the PDF file.
+        signedUrl:
+          type: string
+          description: A signed URL to download the PDF. Valid for 15 minutes.
+      required:
+      - fileName
+      - signedUrl
+    CreateDocumentRequest:
+      type: object
+      properties:
+        subjectId:
+          type: string
+        documentName:
+          type: string
+          description: Display name for this document
+        documentDate:
+          format: date-time
+          type: string
+        fileName:
+          type: string
+        informationTypes:
+          description: Document Classifications (an Array of strings)
+          type: array
+          items:
+            type: string
+        contentType:
+          type: string
+          format: MIME
+          example: application/xml
+      required:
+      - subjectId
+      - fileName
+      - contentType
+    DocumentPaginationResult:
+      type: object
+      properties:
+        pageNumber:
+          type: number
+          default: 1
+          description: Page number to retrieve (1-based index)
+        pageSize:
+          type: number
+          default: 50
+          description: Number of items per page
+        sortField:
+          type: string
+          default: created
+          description: Field name to sort by
+        sortIsDescending:
+          type: boolean
+          default: false
+          description: Whether to sort in descending order
+        totalCount:
+          type: number
+          description: Total number of items matching the query
+        results:
+          description: List of results for the current page
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentSummary'
+      required:
+      - totalCount
+      - results
+    DocumentReciprocityDto:
+      type: object
+      properties:
+        templateId:
+          type: string
+          format: uuid
+          example: c8ffe813-1e61-42aa-a26f-a0e9ab6ed1fd
+          description: The ID of the template to use for reciprocity. See available templates at `GET /api/v1/patient-registry/reciprocity-template`.
+      required:
+      - templateId
     DocumentSummary:
       type: object
       properties:
@@ -373,108 +505,6 @@ components:
       - updated
       - subjectId
       - fileName
-    DocumentReciprocityDto:
-      type: object
-      properties:
-        templateId:
-          type: string
-          format: uuid
-          example: c8ffe813-1e61-42aa-a26f-a0e9ab6ed1fd
-          description: The ID of the template to use for reciprocity. See available templates at `GET /api/v1/patient-registry/reciprocity-template`.
-      required:
-      - templateId
-    CreateDocumentResponse:
-      type: object
-      properties:
-        documentId:
-          type: string
-        signedS3Url:
-          type: string
-      required:
-      - documentId
-      - signedS3Url
-    DocumentPdfUrlDto:
-      type: object
-      properties:
-        fileName:
-          type: string
-          description: The name of the PDF file.
-        signedUrl:
-          type: string
-          description: A signed URL to download the PDF. Valid for 15 minutes.
-      required:
-      - fileName
-      - signedUrl
-    CreateDocumentRequest:
-      type: object
-      properties:
-        subjectId:
-          type: string
-        documentName:
-          type: string
-          description: Display name for this document
-        documentDate:
-          format: date-time
-          type: string
-        fileName:
-          type: string
-        informationTypes:
-          description: Document Classifications (an Array of strings)
-          type: array
-          items:
-            type: string
-        contentType:
-          type: string
-          format: MIME
-          example: application/xml
-      required:
-      - subjectId
-      - fileName
-      - contentType
-    DocumentDetail:
-      type: object
-      properties:
-        id:
-          type: string
-        created:
-          format: date-time
-          type: string
-        updated:
-          format: date-time
-          type: string
-        subjectId:
-          type: string
-        source:
-          type: string
-          enum:
-          - fhir
-          - ccda
-          - box
-          - userUpload
-          - patientFhir
-        sourceId:
-          type: string
-        documentName:
-          type: string
-          description: Display name for this document
-        documentLocation:
-          type: string
-        documentDate:
-          format: date-time
-          type: string
-        fileName:
-          type: string
-        contentType:
-          type: string
-        signedS3Url:
-          type: string
-      required:
-      - id
-      - created
-      - updated
-      - subjectId
-      - fileName
-      - signedS3Url
     UpdateDocumentRequest:
       type: object
       properties:
@@ -487,36 +517,6 @@ components:
           format: yyyy-mm-dd
           type: string
           example: '2023-05-26'
-    DocumentPaginationResult:
-      type: object
-      properties:
-        pageNumber:
-          type: number
-          default: 1
-          description: Page number to retrieve (1-based index)
-        pageSize:
-          type: number
-          default: 50
-          description: Number of items per page
-        sortField:
-          type: string
-          default: created
-          description: Field name to sort by
-        sortIsDescending:
-          type: boolean
-          default: false
-          description: Whether to sort in descending order
-        totalCount:
-          type: number
-          description: Total number of items matching the query
-        results:
-          description: List of results for the current page
-          type: array
-          items:
-            $ref: '#/components/schemas/DocumentSummary'
-      required:
-      - totalCount
-      - results
   securitySchemes:
     bearer:
       scheme: bearer

@@ -131,13 +131,32 @@ paths:
       - bearer: []
 components:
   schemas:
-    CreateApplication:
+    ApplicationWebhooks:
+      type: object
+      properties:
+        onConsentWebhookUrl:
+          type: string
+        onIdentityValidationWebhookUrl:
+          type: string
+        onQueryResultWebhookUrl:
+          type: string
+    Application:
       type: object
       properties:
         id:
           type: string
           format: uuid
           example: c8ec1d54-a85c-411f-aa12-fd3a7f2480f4
+        created:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+        updated:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
         firstName:
           type: string
           example: David
@@ -187,6 +206,15 @@ components:
           type: string
           format: uuid
           example: f46c52af-820b-4169-82af-b740b54d8bb5
+        cohortName:
+          type: string
+          example: Cohort A
+        subjectId:
+          type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        consentAccepted:
+          type: boolean
         onConsentWebhookUrl:
           type: string
           description: Webhook URL to invoke when an applicant accepts or denies consent.
@@ -201,6 +229,8 @@ components:
           example: https://example.com/webhooks/ehr-query
       required:
       - id
+      - created
+      - updated
       - firstName
       - lastName
       - birthDate
@@ -300,23 +330,13 @@ components:
       - addressPostalCode
       - sexAtBirth
       - emailAddress
-    Application:
+    CreateApplication:
       type: object
       properties:
         id:
           type: string
           format: uuid
           example: c8ec1d54-a85c-411f-aa12-fd3a7f2480f4
-        created:
-          format: ISO 8601
-          type: string
-          example: '2025-05-26T23:30:40.912Z'
-          readOnly: true
-        updated:
-          format: ISO 8601
-          type: string
-          example: '2025-05-26T23:30:40.912Z'
-          readOnly: true
         firstName:
           type: string
           example: David
@@ -366,15 +386,6 @@ components:
           type: string
           format: uuid
           example: f46c52af-820b-4169-82af-b740b54d8bb5
-        cohortName:
-          type: string
-          example: Cohort A
-        subjectId:
-          type: string
-          format: uuid
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-        consentAccepted:
-          type: boolean
         onConsentWebhookUrl:
           type: string
           description: Webhook URL to invoke when an applicant accepts or denies consent.
@@ -389,23 +400,12 @@ components:
           example: https://example.com/webhooks/ehr-query
       required:
       - id
-      - created
-      - updated
       - firstName
       - lastName
       - birthDate
       - addressPostalCode
       - sexAtBirth
       - emailAddress
-    ApplicationWebhooks:
-      type: object
-      properties:
-        onConsentWebhookUrl:
-          type: string
-        onIdentityValidationWebhookUrl:
-          type: string
-        onQueryResultWebhookUrl:
-          type: string
   securitySchemes:
     bearer:
       scheme: bearer

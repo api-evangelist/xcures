@@ -547,430 +547,6 @@ paths:
       - bearer: []
 components:
   schemas:
-    UpdateSubject:
-      type: object
-      properties:
-        firstName:
-          type: string
-          example: David
-        middleName:
-          type: string
-          example: Quincy
-          description: Full middle name or a bare initial; omit if the subject has none. An update that omits this field clears any stored value.
-        lastName:
-          type: string
-          example: Mann
-        email:
-          type: string
-          format: email
-          example: david.mann@example.com
-        birthDate:
-          format: yyyy-mm-dd
-          type: string
-          example: '2023-05-26'
-        deathDate:
-          format: yyyy-mm-dd
-          type: string
-          example: '2023-05-26'
-        gender:
-          type: string
-          enum:
-          - M
-          - F
-          - null
-          example: M
-          description: For guaranteed long term compatibility we recommend using the single character gender identifiers. We will optimistically accept other formats like 'male' and 'female'.
-        addressLine1:
-          type: string
-          example: 123 Main St.
-        addressLine2:
-          type: string
-          example: Apt 4B
-        addressCity:
-          type: string
-          example: Minneapolis
-        addressState:
-          type: string
-          format: XX
-          example: MN
-          description: Two letter state code
-        addressPostalCode:
-          type: string
-          format: '00000'
-          example: '55401'
-          description: 5 or 9 digit postal code
-        phoneNumber:
-          type: string
-          example: 123-456-7890
-        externalIdentifiers:
-          example:
-          - externalIdentifier: '12345'
-            externalSystem: Hospital A
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectExternalIdentifier'
-        labels:
-          example:
-          - label_1
-          - Label 2
-          type: array
-          items:
-            type: string
-        additionalNames:
-          example:
-          - first: Dave
-            last: Mann
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectAdditionalName'
-        additionalAddresses:
-          example:
-          - addressLine1: 456 Other St.
-            addressCity: Saint Paul
-            addressState: MN
-            addressPostalCode: '55101'
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectAddressDto'
-        tags:
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectTagDto'
-      required:
-      - firstName
-      - lastName
-    Subject:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-        created:
-          format: ISO 8601
-          type: string
-          example: '2025-05-26T23:30:40.912Z'
-          readOnly: true
-        updated:
-          format: ISO 8601
-          type: string
-          example: '2025-05-26T23:30:40.912Z'
-          readOnly: true
-        deleted:
-          format: ISO 8601
-          type: string
-          example: '2025-05-26T23:30:40.912Z'
-          readOnly: true
-        identifier:
-          type: string
-          example: ABCD12
-          description: A human-readable, randomly generated, 6 character alpha-numeric identifier for the subject.
-          readOnly: true
-        firstName:
-          type: string
-          example: David
-        middleName:
-          type: string
-          example: Quincy
-          description: Full middle name or a bare initial; omit if the subject has none. An update that omits this field clears any stored value.
-        lastName:
-          type: string
-          example: Mann
-        email:
-          type: string
-          format: email
-          example: david.mann@example.com
-        birthDate:
-          format: yyyy-mm-dd
-          type: string
-          example: '2023-05-26'
-        deathDate:
-          format: yyyy-mm-dd
-          type: string
-          example: '2023-05-26'
-        gender:
-          type: string
-          enum:
-          - M
-          - F
-          - null
-          example: M
-          description: For guaranteed long term compatibility we recommend using the single character gender identifiers. We will optimistically accept other formats like 'male' and 'female'.
-        addressLine1:
-          type: string
-          example: 123 Main St.
-        addressLine2:
-          type: string
-          example: Apt 4B
-        addressCity:
-          type: string
-          example: Minneapolis
-        addressState:
-          type: string
-          format: XX
-          example: MN
-          description: Two letter state code
-        addressPostalCode:
-          type: string
-          format: '00000'
-          example: '55401'
-          description: 5 or 9 digit postal code
-        phoneNumber:
-          type: string
-          example: 123-456-7890
-        externalIdentifiers:
-          example:
-          - externalIdentifier: '12345'
-            externalSystem: Hospital A
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectExternalIdentifier'
-        labels:
-          example:
-          - label_1
-          - Label 2
-          type: array
-          items:
-            type: string
-        cohortNames:
-          type: array
-          items:
-            type: string
-        additionalNames:
-          example:
-          - first: Dave
-            last: Mann
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectAdditionalName'
-        additionalAddresses:
-          example:
-          - addressLine1: 456 Other St.
-            addressCity: Saint Paul
-            addressState: MN
-            addressPostalCode: '55101'
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectAddressDto'
-        tags:
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectTagDto'
-      required:
-      - id
-      - created
-      - updated
-      - identifier
-      - firstName
-      - lastName
-    CreateSubjectBatchOptions:
-      type: object
-      properties:
-        initiateEhrQueries:
-          type: boolean
-          description: When true, initiates EHR queries for all subjects in the batch after creation. Defaults to true when omitted.
-          default: true
-    CreateSubject:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-        firstName:
-          type: string
-          example: David
-        middleName:
-          type: string
-          example: Quincy
-          description: Full middle name or a bare initial; omit if the subject has none. An update that omits this field clears any stored value.
-        lastName:
-          type: string
-          example: Mann
-        email:
-          type: string
-          format: email
-          example: david.mann@example.com
-        birthDate:
-          format: yyyy-mm-dd
-          type: string
-          example: '2023-05-26'
-        deathDate:
-          format: yyyy-mm-dd
-          type: string
-          example: '2023-05-26'
-        gender:
-          type: string
-          enum:
-          - M
-          - F
-          - null
-          example: M
-          description: For guaranteed long term compatibility we recommend using the single character gender identifiers. We will optimistically accept other formats like 'male' and 'female'.
-        addressLine1:
-          type: string
-          example: 123 Main St.
-        addressLine2:
-          type: string
-          example: Apt 4B
-        addressCity:
-          type: string
-          example: Minneapolis
-        addressState:
-          type: string
-          format: XX
-          example: MN
-          description: Two letter state code
-        addressPostalCode:
-          type: string
-          format: '00000'
-          example: '55401'
-          description: 5 or 9 digit postal code
-        phoneNumber:
-          type: string
-          example: 123-456-7890
-        externalIdentifiers:
-          example:
-          - externalIdentifier: '12345'
-            externalSystem: Hospital A
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectExternalIdentifier'
-        labels:
-          example:
-          - label_1
-          - Label 2
-          type: array
-          items:
-            type: string
-        additionalNames:
-          example:
-          - first: Dave
-            last: Mann
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectAdditionalName'
-        additionalAddresses:
-          example:
-          - addressLine1: 456 Other St.
-            addressCity: Saint Paul
-            addressState: MN
-            addressPostalCode: '55101'
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectAddressDto'
-        tags:
-          type: array
-          items:
-            $ref: '#/components/schemas/SubjectTagDto'
-      required:
-      - id
-      - firstName
-      - lastName
-    SubjectTagDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: 'Caller-supplied UUID for the tag value. Required on create: the column is `not null` with no database default and no server-side generation.'
-        projectTagId:
-          type: string
-          format: uuid
-          description: The ProjectTag being valued. Its `dataType` decides which of the four value fields below is required.
-        valueText:
-          type: string
-          description: Value when the referenced ProjectTag has `dataType` `text`, and required in that case. Absent otherwise.
-        valueNumber:
-          type: number
-          description: Value when the referenced ProjectTag has `dataType` `number`, and required in that case. Absent otherwise.
-        valueDate:
-          format: date-time
-          type: string
-          description: Value when the referenced ProjectTag has `dataType` `date`, and required in that case. Absent otherwise.
-        valueBoolean:
-          type: boolean
-          description: Value when the referenced ProjectTag has `dataType` `boolean`, and required in that case. Absent otherwise.
-        subjectId:
-          type: string
-          readOnly: true
-          format: uuid
-          description: Subject the tag belongs to. Assigned from the subject being created or updated; anything sent is ignored.
-        organizationId:
-          type: string
-          readOnly: true
-          format: uuid
-          description: Assigned from the authenticated organization; anything sent is ignored.
-        projectId:
-          type: string
-          readOnly: true
-          format: uuid
-          description: Assigned from the request `ProjectId`; anything sent is ignored.
-        created:
-          format: date-time
-          type: string
-          readOnly: true
-          description: Assigned server-side on create; anything sent is ignored.
-        updated:
-          format: date-time
-          type: string
-          readOnly: true
-          description: Assigned server-side on create and update; anything sent is ignored.
-      required:
-      - id
-      - projectTagId
-    SubjectAdditionalName:
-      type: object
-      properties:
-        first:
-          type: string
-          description: At least one of 'first' and 'last' must be provided.
-        last:
-          type: string
-          description: At least one of 'first' and 'last' must be provided.
-        middle:
-          type: string
-          description: Full middle name or a bare initial for this alternate name; omit if unknown.
-    SubjectPaginationResult:
-      type: object
-      properties:
-        pageNumber:
-          type: number
-          default: 1
-          description: Page number to retrieve (1-based index)
-        pageSize:
-          type: number
-          default: 50
-          description: Number of items per page
-        sortField:
-          type: string
-          default: created
-          description: Field name to sort by
-        sortIsDescending:
-          type: boolean
-          default: false
-          description: Whether to sort in descending order
-        totalCount:
-          type: number
-          description: Total number of items matching the query
-        results:
-          description: List of results for the current page
-          type: array
-          items:
-            $ref: '#/components/schemas/Subject'
-      required:
-      - totalCount
-      - results
-    ProblemDetails:
-      type: object
-      properties:
-        status:
-          type: number
-          format: '000'
-        title:
-          type: string
-        detail:
-          type: string
     SubjectExternalIdentifier:
       type: object
       properties:
@@ -981,6 +557,17 @@ components:
       required:
       - externalIdentifier
       - externalSystem
+    CreateSubjectBatch:
+      type: object
+      properties:
+        subjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateSubject'
+        options:
+          $ref: '#/components/schemas/CreateSubjectBatchOptions'
+      required:
+      - subjects
     CreateSubjectResult:
       type: object
       properties:
@@ -1107,16 +694,130 @@ components:
       - identifier
       - firstName
       - lastName
-    ClinicalConceptsStatusDto:
+    Subject:
       type: object
       properties:
-        loaded:
-          type: boolean
-        timestamp:
-          format: date-time
+        id:
           type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        created:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+        updated:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+        deleted:
+          format: ISO 8601
+          type: string
+          example: '2025-05-26T23:30:40.912Z'
+          readOnly: true
+        identifier:
+          type: string
+          example: ABCD12
+          description: A human-readable, randomly generated, 6 character alpha-numeric identifier for the subject.
+          readOnly: true
+        firstName:
+          type: string
+          example: David
+        middleName:
+          type: string
+          example: Quincy
+          description: Full middle name or a bare initial; omit if the subject has none. An update that omits this field clears any stored value.
+        lastName:
+          type: string
+          example: Mann
+        email:
+          type: string
+          format: email
+          example: david.mann@example.com
+        birthDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        deathDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        gender:
+          type: string
+          enum:
+          - M
+          - F
+          - null
+          example: M
+          description: For guaranteed long term compatibility we recommend using the single character gender identifiers. We will optimistically accept other formats like 'male' and 'female'.
+        addressLine1:
+          type: string
+          example: 123 Main St.
+        addressLine2:
+          type: string
+          example: Apt 4B
+        addressCity:
+          type: string
+          example: Minneapolis
+        addressState:
+          type: string
+          format: XX
+          example: MN
+          description: Two letter state code
+        addressPostalCode:
+          type: string
+          format: '00000'
+          example: '55401'
+          description: 5 or 9 digit postal code
+        phoneNumber:
+          type: string
+          example: 123-456-7890
+        externalIdentifiers:
+          example:
+          - externalIdentifier: '12345'
+            externalSystem: Hospital A
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectExternalIdentifier'
+        labels:
+          example:
+          - label_1
+          - Label 2
+          type: array
+          items:
+            type: string
+        cohortNames:
+          type: array
+          items:
+            type: string
+        additionalNames:
+          example:
+          - first: Dave
+            last: Mann
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectAdditionalName'
+        additionalAddresses:
+          example:
+          - addressLine1: 456 Other St.
+            addressCity: Saint Paul
+            addressState: MN
+            addressPostalCode: '55101'
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectAddressDto'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectTagDto'
       required:
-      - loaded
+      - id
+      - created
+      - updated
+      - identifier
+      - firstName
+      - lastName
     CreateSubjectV2:
       type: object
       properties:
@@ -1216,17 +917,6 @@ components:
       - id
       - firstName
       - lastName
-    CreateSubjectBatch:
-      type: object
-      properties:
-        subjects:
-          type: array
-          items:
-            $ref: '#/components/schemas/CreateSubject'
-        options:
-          $ref: '#/components/schemas/CreateSubjectBatchOptions'
-      required:
-      - subjects
     CreateSubjectOptions:
       type: object
       properties:
@@ -1234,6 +924,264 @@ components:
           type: boolean
           description: When true, initiates an EHR query for the subject after creation. Defaults to true when omitted.
           default: true
+    CreateSubjectBatchOptions:
+      type: object
+      properties:
+        initiateEhrQueries:
+          type: boolean
+          description: When true, initiates EHR queries for all subjects in the batch after creation. Defaults to true when omitted.
+          default: true
+    CreateSubject:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        firstName:
+          type: string
+          example: David
+        middleName:
+          type: string
+          example: Quincy
+          description: Full middle name or a bare initial; omit if the subject has none. An update that omits this field clears any stored value.
+        lastName:
+          type: string
+          example: Mann
+        email:
+          type: string
+          format: email
+          example: david.mann@example.com
+        birthDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        deathDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        gender:
+          type: string
+          enum:
+          - M
+          - F
+          - null
+          example: M
+          description: For guaranteed long term compatibility we recommend using the single character gender identifiers. We will optimistically accept other formats like 'male' and 'female'.
+        addressLine1:
+          type: string
+          example: 123 Main St.
+        addressLine2:
+          type: string
+          example: Apt 4B
+        addressCity:
+          type: string
+          example: Minneapolis
+        addressState:
+          type: string
+          format: XX
+          example: MN
+          description: Two letter state code
+        addressPostalCode:
+          type: string
+          format: '00000'
+          example: '55401'
+          description: 5 or 9 digit postal code
+        phoneNumber:
+          type: string
+          example: 123-456-7890
+        externalIdentifiers:
+          example:
+          - externalIdentifier: '12345'
+            externalSystem: Hospital A
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectExternalIdentifier'
+        labels:
+          example:
+          - label_1
+          - Label 2
+          type: array
+          items:
+            type: string
+        additionalNames:
+          example:
+          - first: Dave
+            last: Mann
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectAdditionalName'
+        additionalAddresses:
+          example:
+          - addressLine1: 456 Other St.
+            addressCity: Saint Paul
+            addressState: MN
+            addressPostalCode: '55101'
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectAddressDto'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectTagDto'
+      required:
+      - id
+      - firstName
+      - lastName
+    ClinicalConceptsStatusDto:
+      type: object
+      properties:
+        loaded:
+          type: boolean
+        timestamp:
+          format: date-time
+          type: string
+      required:
+      - loaded
+    SubjectAdditionalName:
+      type: object
+      properties:
+        first:
+          type: string
+          description: At least one of 'first' and 'last' must be provided.
+        last:
+          type: string
+          description: At least one of 'first' and 'last' must be provided.
+        middle:
+          type: string
+          description: Full middle name or a bare initial for this alternate name; omit if unknown.
+    ProblemDetails:
+      type: object
+      properties:
+        status:
+          type: number
+          format: '000'
+        title:
+          type: string
+        detail:
+          type: string
+    SubjectPaginationResult:
+      type: object
+      properties:
+        pageNumber:
+          type: number
+          default: 1
+          description: Page number to retrieve (1-based index)
+        pageSize:
+          type: number
+          default: 50
+          description: Number of items per page
+        sortField:
+          type: string
+          default: created
+          description: Field name to sort by
+        sortIsDescending:
+          type: boolean
+          default: false
+          description: Whether to sort in descending order
+        totalCount:
+          type: number
+          description: Total number of items matching the query
+        results:
+          description: List of results for the current page
+          type: array
+          items:
+            $ref: '#/components/schemas/Subject'
+      required:
+      - totalCount
+      - results
+    UpdateSubject:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: David
+        middleName:
+          type: string
+          example: Quincy
+          description: Full middle name or a bare initial; omit if the subject has none. An update that omits this field clears any stored value.
+        lastName:
+          type: string
+          example: Mann
+        email:
+          type: string
+          format: email
+          example: david.mann@example.com
+        birthDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        deathDate:
+          format: yyyy-mm-dd
+          type: string
+          example: '2023-05-26'
+        gender:
+          type: string
+          enum:
+          - M
+          - F
+          - null
+          example: M
+          description: For guaranteed long term compatibility we recommend using the single character gender identifiers. We will optimistically accept other formats like 'male' and 'female'.
+        addressLine1:
+          type: string
+          example: 123 Main St.
+        addressLine2:
+          type: string
+          example: Apt 4B
+        addressCity:
+          type: string
+          example: Minneapolis
+        addressState:
+          type: string
+          format: XX
+          example: MN
+          description: Two letter state code
+        addressPostalCode:
+          type: string
+          format: '00000'
+          example: '55401'
+          description: 5 or 9 digit postal code
+        phoneNumber:
+          type: string
+          example: 123-456-7890
+        externalIdentifiers:
+          example:
+          - externalIdentifier: '12345'
+            externalSystem: Hospital A
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectExternalIdentifier'
+        labels:
+          example:
+          - label_1
+          - Label 2
+          type: array
+          items:
+            type: string
+        additionalNames:
+          example:
+          - first: Dave
+            last: Mann
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectAdditionalName'
+        additionalAddresses:
+          example:
+          - addressLine1: 456 Other St.
+            addressCity: Saint Paul
+            addressState: MN
+            addressPostalCode: '55101'
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectAddressDto'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectTagDto'
+      required:
+      - firstName
+      - lastName
     SubjectAddressDto:
       type: object
       properties:
@@ -1247,6 +1195,58 @@ components:
           type: string
         addressPostalCode:
           type: string
+    SubjectTagDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 'Caller-supplied UUID for the tag value. Required on create: the column is `not null` with no database default and no server-side generation.'
+        projectTagId:
+          type: string
+          format: uuid
+          description: The ProjectTag being valued. Its `dataType` decides which of the four value fields below is required.
+        valueText:
+          type: string
+          description: Value when the referenced ProjectTag has `dataType` `text`, and required in that case. Absent otherwise.
+        valueNumber:
+          type: number
+          description: Value when the referenced ProjectTag has `dataType` `number`, and required in that case. Absent otherwise.
+        valueDate:
+          format: date-time
+          type: string
+          description: Value when the referenced ProjectTag has `dataType` `date`, and required in that case. Absent otherwise.
+        valueBoolean:
+          type: boolean
+          description: Value when the referenced ProjectTag has `dataType` `boolean`, and required in that case. Absent otherwise.
+        subjectId:
+          type: string
+          readOnly: true
+          format: uuid
+          description: Subject the tag belongs to. Assigned from the subject being created or updated; anything sent is ignored.
+        organizationId:
+          type: string
+          readOnly: true
+          format: uuid
+          description: Assigned from the authenticated organization; anything sent is ignored.
+        projectId:
+          type: string
+          readOnly: true
+          format: uuid
+          description: Assigned from the request `ProjectId`; anything sent is ignored.
+        created:
+          format: date-time
+          type: string
+          readOnly: true
+          description: Assigned server-side on create; anything sent is ignored.
+        updated:
+          format: date-time
+          type: string
+          readOnly: true
+          description: Assigned server-side on create and update; anything sent is ignored.
+      required:
+      - id
+      - projectTagId
   securitySchemes:
     bearer:
       scheme: bearer

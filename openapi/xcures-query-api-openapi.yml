@@ -201,36 +201,6 @@ paths:
       - bearer: []
 components:
   schemas:
-    QueryPaginationResult:
-      type: object
-      properties:
-        pageNumber:
-          type: number
-          default: 1
-          description: Page number to retrieve (1-based index)
-        pageSize:
-          type: number
-          default: 50
-          description: Number of items per page
-        sortField:
-          type: string
-          default: created
-          description: Field name to sort by
-        sortIsDescending:
-          type: boolean
-          default: false
-          description: Whether to sort in descending order
-        totalCount:
-          type: number
-          description: Total number of items matching the query
-        results:
-          description: List of results for the current page
-          type: array
-          items:
-            $ref: '#/components/schemas/Query'
-      required:
-      - totalCount
-      - results
     GetQueryResponse:
       type: object
       properties:
@@ -268,6 +238,77 @@ components:
       - subjectId
       - created
       - userId
+    Query:
+      type: object
+      properties:
+        id:
+          type: string
+        subjectId:
+          type: string
+        created:
+          format: date-time
+          type: string
+        userId:
+          type: string
+        fhirStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        ccdaStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        queryAttempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueryAttempt'
+      required:
+      - id
+      - subjectId
+      - created
+      - userId
+    QueryPaginationResult:
+      type: object
+      properties:
+        pageNumber:
+          type: number
+          default: 1
+          description: Page number to retrieve (1-based index)
+        pageSize:
+          type: number
+          default: 50
+          description: Number of items per page
+        sortField:
+          type: string
+          default: created
+          description: Field name to sort by
+        sortIsDescending:
+          type: boolean
+          default: false
+          description: Whether to sort in descending order
+        totalCount:
+          type: number
+          description: Total number of items matching the query
+        results:
+          description: List of results for the current page
+          type: array
+          items:
+            $ref: '#/components/schemas/Query'
+      required:
+      - totalCount
+      - results
     QueryDto:
       type: object
       properties:
@@ -318,22 +359,6 @@ components:
       - externalPatientId
       - externalQueryId
       - queryAttempts
-    CreateQueryDto:
-      type: object
-      properties:
-        subjectId:
-          type: string
-          description: The ID of the subject for whom the query is being created.
-          example: 1782b464-ab03-4c03-9810-83d42b86e587
-        organizationIds:
-          description: A list of organization IDs associated with the query.
-          example:
-          - 2.16.840.1.113883.3.3126.2.3.32103.16
-          type: array
-          items:
-            type: string
-      required:
-      - subjectId
     QueryAttempt:
       type: object
       properties:
@@ -367,47 +392,22 @@ components:
       required:
       - queryId
       - created
-    Query:
+    CreateQueryDto:
       type: object
       properties:
-        id:
-          type: string
         subjectId:
           type: string
-        created:
-          format: date-time
-          type: string
-        userId:
-          type: string
-        fhirStatus:
-          type: string
-          enum:
-          - delayed
-          - initiated
-          - pending
-          - inProgress
-          - completed
-          - exhausted
-          - error
-        ccdaStatus:
-          type: string
-          enum:
-          - delayed
-          - initiated
-          - pending
-          - inProgress
-          - completed
-          - exhausted
-          - error
-        queryAttempts:
+          description: The ID of the subject for whom the query is being created.
+          example: 1782b464-ab03-4c03-9810-83d42b86e587
+        organizationIds:
+          description: A list of organization IDs associated with the query.
+          example:
+          - 2.16.840.1.113883.3.3126.2.3.32103.16
           type: array
           items:
-            $ref: '#/components/schemas/QueryAttempt'
+            type: string
       required:
-      - id
       - subjectId
-      - created
-      - userId
   securitySchemes:
     bearer:
       scheme: bearer
