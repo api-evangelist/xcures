@@ -327,16 +327,6 @@ paths:
       - bearer: []
 components:
   schemas:
-    CreateDocumentResponse:
-      type: object
-      properties:
-        documentId:
-          type: string
-        signedS3Url:
-          type: string
-      required:
-      - documentId
-      - signedS3Url
     DocumentDetail:
       type: object
       properties:
@@ -381,44 +371,6 @@ components:
       - subjectId
       - fileName
       - signedS3Url
-    DocumentPdfUrlDto:
-      type: object
-      properties:
-        fileName:
-          type: string
-          description: The name of the PDF file.
-        signedUrl:
-          type: string
-          description: A signed URL to download the PDF. Valid for 15 minutes.
-      required:
-      - fileName
-      - signedUrl
-    CreateDocumentRequest:
-      type: object
-      properties:
-        subjectId:
-          type: string
-        documentName:
-          type: string
-          description: Display name for this document
-        documentDate:
-          format: date-time
-          type: string
-        fileName:
-          type: string
-        informationTypes:
-          description: Document Classifications (an Array of strings)
-          type: array
-          items:
-            type: string
-        contentType:
-          type: string
-          format: MIME
-          example: application/xml
-      required:
-      - subjectId
-      - fileName
-      - contentType
     DocumentPaginationResult:
       type: object
       properties:
@@ -449,16 +401,6 @@ components:
       required:
       - totalCount
       - results
-    DocumentReciprocityDto:
-      type: object
-      properties:
-        templateId:
-          type: string
-          format: uuid
-          example: c8ffe813-1e61-42aa-a26f-a0e9ab6ed1fd
-          description: The ID of the template to use for reciprocity. See available templates at `GET /api/v1/patient-registry/reciprocity-template`.
-      required:
-      - templateId
     DocumentSummary:
       type: object
       properties:
@@ -505,6 +447,16 @@ components:
       - updated
       - subjectId
       - fileName
+    DocumentReciprocityDto:
+      type: object
+      properties:
+        templateId:
+          type: string
+          format: uuid
+          example: c8ffe813-1e61-42aa-a26f-a0e9ab6ed1fd
+          description: The ID of the template to use for reciprocity. See available templates at `GET /api/v1/patient-registry/reciprocity-template`.
+      required:
+      - templateId
     UpdateDocumentRequest:
       type: object
       properties:
@@ -517,6 +469,54 @@ components:
           format: yyyy-mm-dd
           type: string
           example: '2023-05-26'
+    CreateDocumentRequest:
+      type: object
+      properties:
+        subjectId:
+          type: string
+        documentName:
+          type: string
+          description: Display name for this document
+        documentDate:
+          format: date-time
+          type: string
+        fileName:
+          type: string
+        informationTypes:
+          description: Document Classifications (an Array of strings)
+          type: array
+          items:
+            type: string
+        contentType:
+          type: string
+          format: MIME
+          example: application/xml
+      required:
+      - subjectId
+      - fileName
+      - contentType
+    CreateDocumentResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+        signedS3Url:
+          type: string
+      required:
+      - documentId
+      - signedS3Url
+    DocumentPdfUrlDto:
+      type: object
+      properties:
+        fileName:
+          type: string
+          description: The name of the PDF file.
+        signedUrl:
+          type: string
+          description: A signed URL to download the PDF. Valid for 15 minutes.
+      required:
+      - fileName
+      - signedUrl
   securitySchemes:
     bearer:
       scheme: bearer

@@ -201,43 +201,6 @@ paths:
       - bearer: []
 components:
   schemas:
-    GetQueryResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        subjectId:
-          type: string
-        created:
-          format: date-time
-          type: string
-        userId:
-          type: string
-        fhirStatus:
-          type: string
-          enum:
-          - delayed
-          - initiated
-          - pending
-          - inProgress
-          - completed
-          - exhausted
-          - error
-        ccdaStatus:
-          type: string
-          enum:
-          - delayed
-          - initiated
-          - pending
-          - inProgress
-          - completed
-          - exhausted
-          - error
-      required:
-      - id
-      - subjectId
-      - created
-      - userId
     Query:
       type: object
       properties:
@@ -279,6 +242,22 @@ components:
       - subjectId
       - created
       - userId
+    CreateQueryDto:
+      type: object
+      properties:
+        subjectId:
+          type: string
+          description: The ID of the subject for whom the query is being created.
+          example: 1782b464-ab03-4c03-9810-83d42b86e587
+        organizationIds:
+          description: A list of organization IDs associated with the query.
+          example:
+          - 2.16.840.1.113883.3.3126.2.3.32103.16
+          type: array
+          items:
+            type: string
+      required:
+      - subjectId
     QueryPaginationResult:
       type: object
       properties:
@@ -359,6 +338,43 @@ components:
       - externalPatientId
       - externalQueryId
       - queryAttempts
+    GetQueryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        subjectId:
+          type: string
+        created:
+          format: date-time
+          type: string
+        userId:
+          type: string
+        fhirStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+        ccdaStatus:
+          type: string
+          enum:
+          - delayed
+          - initiated
+          - pending
+          - inProgress
+          - completed
+          - exhausted
+          - error
+      required:
+      - id
+      - subjectId
+      - created
+      - userId
     QueryAttempt:
       type: object
       properties:
@@ -392,22 +408,6 @@ components:
       required:
       - queryId
       - created
-    CreateQueryDto:
-      type: object
-      properties:
-        subjectId:
-          type: string
-          description: The ID of the subject for whom the query is being created.
-          example: 1782b464-ab03-4c03-9810-83d42b86e587
-        organizationIds:
-          description: A list of organization IDs associated with the query.
-          example:
-          - 2.16.840.1.113883.3.3126.2.3.32103.16
-          type: array
-          items:
-            type: string
-      required:
-      - subjectId
   securitySchemes:
     bearer:
       scheme: bearer
