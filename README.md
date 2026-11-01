@@ -64,46 +64,145 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-xCures operates the Clinical Clarity Engine, an AI platform that retrieves, organizes and structures
-fragmented patient medical records into decision-ready clinical data. Founded in 2018, it connects to
-national health information networks (Carequality and TEFCA) to assemble a patient's longitudinal record
-across every provider and care location, then normalizes it into FHIR R4, OHDSI/OMOP vocabularies and HL7
-mCODE oncology elements with every field anchored to its source document.
+xCures operates the Clinical Clarity Engine, an AI platform that retrieves, organizes and structures fragmented patient medical records into decision-ready clinical data. Founded in 2018 and headquartered in Oakland, California, the company connects to national health information networks (Carequality and TEFCA) to pull a patient's longitudinal record across every provider and care location, then applies LLM-based named-entity/relation extraction and retrieval-augmented checklist assertion to normalize it into FHIR R4 resources, OHDSI/OMOP-mapped vocabularies (SNOMED, LOINC, RxNorm) and HL7 mCODE oncology elements, with every field anchored to its source document. The xCures Public API exposes that engine over REST at partner.xcures.com — patient (Subject) registration, network Query dispatch and polling, document retrieval and reciprocity publishing, FHIR resource reads and bulk export, fifteen Clinical Concepts domains, AI Checklist evaluation and subject summaries — authenticated with OAuth 2.0 client-credentials bearer tokens scoped by a ProjectId header. Originally an oncology real-world-data platform, it expanded to all therapeutic areas and is sold as SaaS, embedded API connections and de-identified real-world datasets to providers, diagnostics companies, value-based-care organizations and channel partners.
 
-## What this profile covers
+**Areas:** Health · Healthcare · Medical Records · Interoperability · FHIR · Oncology · Real-World Data · Clinical Data · Artificial Intelligence · TEFCA · Carequality · Patient Data
 
-The **xCures Public API** — a 69-operation REST API at `https://partner.xcures.com`, documented at
-[docs.xcures.com](https://docs.xcures.com/). OAuth 2.0 client-credentials bearer auth with a required
-`ProjectId` header on 67 of 69 operations.
+## xCures on APIs.io
 
-| | |
+Everything profiled for xCures is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/xcures/](https://apis.io/providers/xcures/)** — or go straight to one of the APIs or properties below.
+
+### APIs (11)
+
+- [xCures Application API](https://apis.io/apis/xcures/xcures-application-api/) — Account creation (e.g., identity proofing, eConsent) that is required for a patient to progress on the xCures Platform.
+- [xCures Checklist API](https://apis.io/apis/xcures/xcures-checklist-api/) — AI-powered feature leveraging xCures’ targeted data extraction/processing to populate validated, customizable question/answer-style items. Responses can be…
+- [xCures Clinical Concepts API](https://apis.io/apis/xcures/xcures-clinical-concepts-api/) — Clinical concepts is a proprietary xCures higher-level, flattened, filtered, opinionated view of medical record information, structured around FHIR guidelines.
+- [xCures Document API](https://apis.io/apis/xcures/xcures-document-api/) — Patient records retrieved by the xCures platform and/or loaded by platform users.
+- [xCures FHIR API](https://apis.io/apis/xcures/xcures-fhir-api/) — **F**ast **H**ealthcare **I**nteroperability **R**esource is an international data model specification developed by HL7 International to enable healthcare…
+- [xCures Project API](https://apis.io/apis/xcures/xcures-project-api/) — A configured workspace on the xCures Platform. Use this endpoint to discover the projectId value(s) required by other API calls, without needing to log into…
+- [xCures Query API](https://apis.io/apis/xcures/xcures-query-api/) — A specified, approved request for patient records across the network (e.g., via Carequality/TEFCA to support treatment activities, via TEFCA for IAS…
+- [xCures Reciprocity Template API](https://apis.io/apis/xcures/xcures-reciprocity-template-api/) — Reciprocity or "Responder" workflows refer to the process of sharing clinical documentation housed within your system with other organizations/providers,…
+- [xCures Subject API](https://apis.io/apis/xcures/xcures-subject-api/) — An individual patient created on the xCures Platform.
+- [xCures Summary API](https://apis.io/apis/xcures/xcures-summary-api/) — The AI-generated summary of a patient’s overall records and condition(s).
+- [xCures O Auth API](https://apis.io/apis/xcures/xcures-oauth-api/) — All API requests to xCures must provide an access token, retrieved via the standard OAuth authorization flow below.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### AsyncAPI (1)
+
+Event-driven and webhook contracts.
+
+- [Xcures Application Webhooks](https://apis.io/asyncapis/xcures/xcures-application-webhooks/)
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [xCures Docs MCP Server](https://apis.io/servers/xcures/xcures-docs-mcp-server/)
+
+#### Examples (1)
+
+Example requests and responses.
+
+- [Xcures Workflow Playbook.Postman_Collection](https://apis.io/examples/xcures/xcures-workflow-playbook.postman_collection/)
+
+#### Overlays (1)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Xcures Patient Registry Api Overlay](https://apis.io/overlays/xcures/xcures-patient-registry-api-overlay/)
+
+#### Security (3)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Xcures Authentication](https://apis.io/security/xcures/xcures-authentication/)
+- [Xcures Domain Security](https://apis.io/security/xcures/xcures-domain-security/)
+- [Xcures Trust Center](https://apis.io/security/xcures/xcures-trust-center/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Xcures Plans Pricing](https://apis.io/plans/xcures/xcures-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Xcures Rate Limits](https://apis.io/rate-limits/xcures/xcures-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://xcures.com/)
+- [Documentation](https://docs.xcures.com/api-introduction)
+- [Getting started](https://docs.xcures.com/api-introduction)
+- [API reference](https://docs.xcures.com/apis/current)
+- [Sign up](https://xcures.com/contact-us/)
+- [Support](https://docs.xcures.com/support)
+- [Blog](https://xcures.com/blog/)
+- [Compliance](https://xcures.com/trust/)
+- [Trust centre](https://xcures.com/trust/)
+- [Terms of service](https://xcures.com/terms-of-service/)
+- [Privacy policy](https://xcures.com/privacy-security-notice/)
+- [GitHub](https://github.com/xCures)
+- [Status](https://status.xcures.com/)
+
+## API Evangelist rating
+
+**Kin Score 60.8** — strong · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
 |---|---|
-| Contract | OpenAPI 3.0.0, 63 paths / 69 operations / 64 schemas — [`openapi/`](openapi/) |
-| API reference | https://docs.xcures.com/apis/current |
-| Getting started | https://docs.xcures.com/api-introduction |
-| Base URL | `https://partner.xcures.com` |
-| Auth | OAuth 2.0 client credentials → HTTP Bearer (JWT), plus a `ProjectId` header |
-| Agent surfaces | Six provider-published Agent Skills, an A2A agent card, and a remote MCP server |
-| Pricing | Not published — contact-sales only |
+| Discoverability | 75.0 |
+| Contract quality | 58.2 |
+| Contract governance | 18.2 |
+| Operational transparency | 71.1 |
+| Developer ergonomics | 76.2 |
+| Access clarity | 50.0 |
 
-## Notable findings
+**Agent readiness 59.5** — agent-ready (gated down from agent-native)
 
-- **Six provider-published Agent Skills.** xCures serves machine-readable `SKILL.md` workflow guides
-  unauthenticated at `/.well-known/agent-skills/`, with a discovery index carrying a sha256 digest per
-  skill. Announced in the 2026-08-19 changelog. Captured verbatim in [`skills/`](skills/).
-- **A real A2A agent card**, graded *conformant* against the A2A 1.0.0 hard checks — see [`a2a/`](a2a/).
-- **A remote MCP server** at `https://docs.xcures.com/mcp`, OAuth-gated, with RFC 8414 and RFC 9728
-  discovery documents — see [`mcp/`](mcp/).
-- **FHIR R4 is declared in the contract**, not only claimed in marketing: 13 `/fhir/*` operations plus
-  `_export`, with twelve responses defined by reference to the HL7 FHIR R4 Bundle definition.
-- **HITRUST e1 certified**; HIPAA compliant. The SOC 2 Type 2 and ISO 27001 certifications named on the
-  trust page belong to AWS and are inherited, not held by xCures — see
-  [`security/xcures-trust-center.yml`](security/xcures-trust-center.yml).
-- **No first-party SDK exists in any package registry** despite an "SDKs" link in the docs footer; what
-  xCures calls its SDK is a Postman collection and a documentation surface.
-- **Idempotency is partial** — client-supplied subject UUIDs give 409-on-duplicate replay protection on
-  2 of 12 mutating operations; there is no `Idempotency-Key` header anywhere.
-- **One reversible write.** Publishing a document to the exchange network can be unpublished; a
-  dispatched network query cannot be recalled.
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | verified |
+| Auth Clarity | served (partial credit) |
+| Idempotency | documented (partial credit) |
+| Error Semantics | verified |
+| OpenAPI Examples | partial |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | derived (partial credit) |
+| Agent Skills | yes |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | verified |
+| Dynamic Client Registration | yes |
+| Agentic Commerce | — |
+| Pagination Ratio | partial |
+| Operation Distinctiveness | distinct |
 
-Source of record: [`apis.yml`](apis.yml).
+**Regulatory alignment 30.9** — Health
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/xcures/](https://apis.io/providers/xcures/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for xCures: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/xcures/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
